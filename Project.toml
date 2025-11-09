@@ -1,0 +1,13 @@
+name = "NORiOceanParameterization"
+uuid = "387c5e47-b07a-4683-ad32-7ad5f2efffec"
+authors = ["Xin Kai Lee <me@xinkailee.com>"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.10.1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
