@@ -1,5 +1,5 @@
 using Oceananigans: FieldDataset, interior, Face, Center
-using SaltyOceanParameterizations.Operators: Dᶠ
+using NORiOceanParameterization.Operators: Dᶠ
 using SeawaterPolynomials
 using SeawaterPolynomials.TEOS10
 
@@ -279,6 +279,26 @@ function LESData(data::FieldDataset, scalings::NamedTuple, timeframes, coarse_si
     metadata["original_times"] = data["ubar"].times
 
     return LESData(metadata, data["ubar"].times[timeframes], profile, flux, coriolis)
+end
+
+"""
+    LESDatasets{D, S}
+
+Container for multiple LES simulation datasets with shared scaling transformations.
+
+# Fields
+- `data`: Vector of `LESData` objects
+- `scaling`: Named tuple of scaling transformations applied across all datasets
+
+This structure ensures consistent feature scaling across multiple LES simulations,
+which is essential for training machine learning models on combined datasets.
+
+# See also
+[`LESData`](@ref), [`AbstractFeatureScaling`](@ref)
+"""
+struct LESDatasets{D, S}
+    data :: D
+    scaling :: S
 end
 
 """

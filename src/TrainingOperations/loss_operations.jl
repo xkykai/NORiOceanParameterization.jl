@@ -1,6 +1,6 @@
 using SeawaterPolynomials.TEOS10
 using SeawaterPolynomials
-using SaltyOceanParameterizations.DataWrangling: LESData
+using NORiOceanParameterization.DataWrangling: LESData
 using Statistics
 
 """

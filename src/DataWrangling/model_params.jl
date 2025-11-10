@@ -1,4 +1,4 @@
-using SaltyOceanParameterizations.Operators: Dᶜ, Dᶠ, Iᶠ
+using NORiOceanParameterization.Operators: Dᶜ, Dᶠ, Iᶠ
 
 """
     ODEParam{F, FS, T, NT, ST, Z, L, G, CS, DC, DF, IF, DCH, DFH, UW, VW, WT, WS, SC}
