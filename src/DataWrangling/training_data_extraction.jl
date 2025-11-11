@@ -27,7 +27,16 @@ end
 """
     load_dataset_split(filepath::String)
 
-Load a dataset split JSON file and return a dictionary with the splits.
+Load and parse a dataset split JSON file.
+
+Merges array of dictionaries from JSON into a single dictionary mapping
+split names to file lists.
+
+# Arguments
+- `filepath::String`: Path to JSON file containing dataset splits
+
+# Returns
+Dictionary mapping split names (e.g., "training", "validation") to file lists
 """
 function load_dataset_split(filepath::String)
     data = JSON.parsefile(filepath)
@@ -46,6 +55,12 @@ end
     get_nn_datasets(filepath::String)
 
 Get training and validation datasets from nn_dataset_split.json
+
+# Arguments
+- `filepath::String`: Path to nn_dataset_split.json
+
+# Returns
+NamedTuple with `training` and `validation` file lists
 """
 function get_nn_datasets(filepath::String)
     splits = load_dataset_split(filepath)
@@ -60,9 +75,18 @@ end
     get_baseclosure_datasets(filepath::String)
 
 Get training and test datasets from baseclosure_dataset_split.json
+
+# Arguments
+- `filepath::String`: Path to baseclosure_dataset_split.json
+
+# Returns
+NamedTuple with:
+- `training`: Combined training files
+- `test`: Test files
+- `training_shear`: Shear-driven training subset
+- `training_convection`: Convection-driven training subset
 """
 function get_baseclosure_datasets(filepath::String)
-    @info "whale hi!"
     splits = load_dataset_split(filepath)
     
     training_shear = get(splits, "training_shear", String[])

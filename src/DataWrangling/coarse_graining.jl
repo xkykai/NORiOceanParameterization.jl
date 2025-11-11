@@ -1,4 +1,5 @@
 using Oceananigans: Center, Face
+using Statistics
 
 """
     coarse_grain(Φ, n, ::Type{Center})

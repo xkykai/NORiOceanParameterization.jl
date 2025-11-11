@@ -248,11 +248,6 @@ function LESData(data::FieldDataset, scalings::NamedTuple, timeframes, coarse_si
     uw_surface = get_surface_fluxes(data.metadata["momentum_flux"])
     wT_surface = get_surface_fluxes(data.metadata["temperature_flux"])
     wS_surface = get_surface_fluxes(data.metadata["salinity_flux"])
-    
-    ## TODO: Ensure this is correct
-    # uw_surface = 0
-    # wT_surface = 0
-    # wS_surface = 0
     vw_surface = 0
 
     uw_bottom = 0
