@@ -8,10 +8,11 @@ export
     LESData, LESDatasets,
     ODEParam, ODEParams,
     write_scaling_params, construct_zeromeanunitvariance_scaling,
-    get_SOBLLES_data_path,
+    get_SOBLLES_data_path, get_nn_datasets, get_baseclosure_datasets,
     local_Ri_ν, local_Ri_κ,
     nonlocal_Ri_ν, nonlocal_Ri_κ,
     predict_boundary_flux, predict_boundary_flux!,
+    predict_diffusivities, predict_diffusivities!,
     compute_density_contribution
 
 include("utils.jl")
