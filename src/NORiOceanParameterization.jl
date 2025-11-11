@@ -13,19 +13,24 @@ export
     nonlocal_Ri_ν, nonlocal_Ri_κ,
     predict_boundary_flux, predict_boundary_flux!,
     predict_diffusivities, predict_diffusivities!,
-    compute_density_contribution
+    predict_diffusive_flux, predict_diffusive_boundary_flux_dimensional,
+    compute_density_contribution,
+    animate_data, plot_loss
 
-include("utils.jl")
 include("Operators/Operators.jl")
+include("Utils/Utils.jl")
 include("DataWrangling/DataWrangling.jl")
 include("Closures/Closures.jl")
 include("ODEOperations/ODEOperations.jl")
 include("TrainingOperations/TrainingOperations.jl")
+include("Plotting/Plotting.jl")
 
 using .Operators
 using .DataWrangling
 using .Closures
 using .ODEOperations
 using .TrainingOperations
+using .Utils
+using .Plotting
 
 end
