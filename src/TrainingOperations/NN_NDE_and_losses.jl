@@ -129,7 +129,7 @@ The NN corrections are only applied in the boundary layer zone determined by the
 # Returns
 NamedTuple with solution profiles: `(u, v, T, S, ρ)` at original timesteps
 """
-function solve_NDE(ps, params, x₀, ps_baseclosure, sts, NNs, Nt,
+function solve_NDE(::NNMode, ps, params, x₀, ps_baseclosure, sts, NNs, Nt,
                    grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, timestep_multiple=10)
     eos = TEOS10EquationOfState()
     coarse_size = params.coarse_size
@@ -272,14 +272,14 @@ Compute individual loss components for profiles and their gradients using NN-cor
 # Returns
 NamedTuple with MSE losses for T, S, ρ and their gradients
 """
-function individual_loss(ps, truth, params, x₀, ps_baseclosure, sts, NNs, Nt,
+function individual_loss(mode::NNMode, ps, truth, params, x₀, ps_baseclosure, sts, NNs, Nt,
                          grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart=1, timestep_multiple=10)
     Dᶠ = params.Dᶠ
     scaling = params.scaling
 
     # u and v losses are not included in the neural network training
     # This is because the inertial oscillations in u and v significantly deteriorates training quality
-    _, _, sol_T, sol_S, sol_ρ = solve_NDE(ps, params, x₀, ps_baseclosure, sts, NNs, Nt,
+    _, _, sol_T, sol_S, sol_ρ = solve_NDE(mode, ps, params, x₀, ps_baseclosure, sts, NNs, Nt,
                                            grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, timestep_multiple)
 
     T_loss = mean((sol_T .- truth.T[:, tstart:tstart+Nt-1]).^2)
@@ -330,15 +330,15 @@ Compute weighted total loss across tracer fields using NN-corrected fluxes.
 # Returns
 Scalar weighted sum of all individual losses
 """
-function loss(ps, truth, params, x₀, ps_baseclosure, sts, NNs, Nt,
+function loss(mode::NNMode, ps, truth, params, x₀, ps_baseclosure, sts, NNs, Nt,
               grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart=1, timestep_multiple=10,
               losses_prefactor=(; T=1, S=1, ρ=1, ∂T∂z=1, ∂S∂z=1, ∂ρ∂z=1))
-    losses = individual_loss(ps, truth, params, x₀, ps_baseclosure, sts, NNs, Nt,
+    losses = individual_loss(mode, ps, truth, params, x₀, ps_baseclosure, sts, NNs, Nt,
                              grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart, timestep_multiple)
     return sum(values(losses) .* values(losses_prefactor))
 end
 
-# loss(args...) = loss(NNMode(), args...)
+loss(args...) = loss(NNMode(), args...)
 
 """
     compute_loss_prefactor_density_contribution(::NNMode, individual_loss, contribution, S_scaling=1.0)
@@ -357,7 +357,7 @@ Only considers tracers (no momentum fields for NDE training).
 # Returns
 NamedTuple of loss prefactors for T, S, ρ and their gradients
 """
-function compute_loss_prefactor_density_contribution(individual_loss, contribution, S_scaling=1.0)
+function compute_loss_prefactor_density_contribution(::NNMode, individual_loss, contribution, S_scaling=1.0)
     T_loss, S_loss, ρ_loss, ∂T∂z_loss, ∂S∂z_loss, ∂ρ∂z_loss = values(individual_loss)
 
     T_contribution = max(contribution.T, 1e-2)
@@ -423,9 +423,9 @@ Compute mean loss across multiple initial conditions using NN-corrected fluxes (
 # Returns
 Mean loss across all initial conditions
 """
-function loss_multipleics(ps, truths, params, x₀s, ps_baseclosure, sts, NNs, losses_prefactors, Nt::Number,
+function loss_multipleics(mode::NNMode, ps, truths, params, x₀s, ps_baseclosure, sts, NNs, losses_prefactors, Nt::Number,
                           grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart=1, timestep_multiple=10)
-    losses = [loss(ps, truth, param, x₀, ps_baseclosure, sts, NNs, Nt,
+    losses = [loss(mode, ps, truth, param, x₀, ps_baseclosure, sts, NNs, Nt,
                    grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart, timestep_multiple, loss_prefactor)
               for (truth, x₀, param, loss_prefactor) in zip(truths, x₀s, params, losses_prefactors)]
     return mean(losses)
@@ -445,15 +445,15 @@ Same as single-Nt version but with:
 # Returns
 Mean loss across all initial conditions
 """
-function loss_multipleics(ps, truths, params, x₀s, ps_baseclosure, sts, NNs, losses_prefactors, Nts::Vector,
+function loss_multipleics(mode::NNMode, ps, truths, params, x₀s, ps_baseclosure, sts, NNs, losses_prefactors, Nts::Vector,
                           grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart=1, timestep_multiple=10)
-    losses = [loss(ps, truth, param, x₀, ps_baseclosure, sts, NNs, Nt,
+    losses = [loss(mode, ps, truth, param, x₀, ps_baseclosure, sts, NNs, Nt,
                    grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, tstart, timestep_multiple, loss_prefactor)
               for (truth, x₀, param, loss_prefactor, Nt) in zip(truths, x₀s, params, losses_prefactors, Nts)]
     return mean(losses)
 end
 
-# loss_multipleics(args...) = loss_multipleics(NNMode(), args...)
+loss_multipleics(args...) = loss_multipleics(NNMode(), args...)
 
 """
     diagnose_fields(mode::NNMode, ps, params, x₀, ps_baseclosure, sts, NNs, train_data_plot, Nt, grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, timestep_multiple=2)
@@ -488,13 +488,13 @@ NamedTuple with:
 - `diffusivities`: Diagnosed ν, κ, Ri with NN, and truth Ri
 - `diffusivities_noNN`: Diagnosed ν, κ, Ri base closure only
 """
-function diagnose_fields(ps, params, x₀, ps_baseclosure, sts, NNs, train_data_plot, Nt,
+function diagnose_fields(mode::NNMode, ps, params, x₀, ps_baseclosure, sts, NNs, train_data_plot, Nt,
                          grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, timestep_multiple=2)
-    sols = solve_NDE(ps, params, x₀, ps_baseclosure, sts, NNs, Nt,
+    sols = solve_NDE(mode, ps, params, x₀, ps_baseclosure, sts, NNs, Nt,
                      grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, timestep_multiple)
 
     ps_noNN = deepcopy(ps) .= 0
-    sols_noNN = solve_NDE(ps_noNN, params, x₀, ps_baseclosure, sts, NNs, Nt,
+    sols_noNN = solve_NDE(mode, ps_noNN, params, x₀, ps_baseclosure, sts, NNs, Nt,
                           grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, timestep_multiple)
 
     coarse_size = params.coarse_size
