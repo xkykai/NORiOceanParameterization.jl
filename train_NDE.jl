@@ -193,8 +193,10 @@ function train_NDE_multipleics(ps, params, ps_baseclosure, sts, NNs, truths, x�
                             for (truth, x₀, param, Nt) in zip(truths_validation, x₀s_validation, params_validation, Nts_validation)]
 
     # Adaptive loss weighting based on T/S density contributions
-    loss_prefactors = compute_loss_prefactor_density_contribution.(Ref(mode), ind_losses, compute_density_contribution.(training_data.data))
-    loss_prefactors_validation = compute_loss_prefactor_density_contribution.(Ref(mode), ind_losses_validation, compute_density_contribution.(validation_data.data))
+    loss_prefactors = compute_loss_prefactor_density_contribution.(Ref(mode), ind_losses, 
+                                                                   compute_density_contribution.(training_data.data))
+    loss_prefactors_validation = compute_loss_prefactor_density_contribution.(Ref(mode), ind_losses_validation, 
+                                                                              compute_density_contribution.(validation_data.data))
 
     jldopen(joinpath(WEIGHTS_DIR, "model_weights_round$(epoch)_end$(timeframes[end]).jld2"), "w") do file
         file["0"] = ps
@@ -245,7 +247,8 @@ function train_NDE_multipleics(ps, params, ps_baseclosure, sts, NNs, truths, x�
         end
 
         @printf("%s, Δt %s, round %d, iter %d/%d, (l_t, l_v) (%6.10e, %6.10e), (lmin_t, l_min_v) (%6.5e, %6.5e)\n",
-                Dates.now(), prettytime(1e-9 * (time_ns() - wall_clock[1])), epoch, iter, maxiter, l, l_validation, l_min, l_min_validation)
+                Dates.now(), prettytime(1e-9 * (time_ns() - wall_clock[1])), epoch, iter, 
+                maxiter, l, l_validation, l_min, l_min_validation)
 
         dps .= 0
         mean_loss = l
@@ -281,7 +284,9 @@ function train_NDE_multipleics(ps, params, ps_baseclosure, sts, NNs, truths, x�
 
         wall_clock = [time_ns()]
     end
-    return ps_min, ps_min_validation, (; total=losses, total_validation=losses_validation), opt_statemin, opt_statemin_validation, iter_min, iter_min_validation
+
+    return (ps_min, ps_min_validation, (; total=losses, total_validation=losses_validation), 
+            opt_statemin, opt_statemin_validation, iter_min, iter_min_validation)
 end
 
 # Curriculum learning: gradually increase training horizon and decrease learning rate
@@ -297,11 +302,12 @@ for (i, (epoch, optimizer, maxiter, training_timeframe)) in enumerate(zip(end_ep
     global sols = sols
 
     # Train NDE with current learning rate and time horizon
-    ps, ps_validation, losses, opt_state, opt_state_validation, iter_min, iter_min_validation = train_NDE_multipleics(ps, params, ps_baseclosure, sts, NNs,
-                                                                                                                      truths, x₀s, truths_validation, x₀s_validation, params_validation, validation_data,
-                                                                                                                      training_data, training_timeframe, scaling_params,
-                                                                                                                      grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size;
-                                                                                                                      sim_index=sim_indices, epoch=i, maxiter=maxiter, rule=optimizer)
+    ps, ps_validation, losses, opt_state, opt_state_validation, iter_min, iter_min_validation = train_NDE_multipleics(
+        ps, params, ps_baseclosure, sts, NNs,
+        truths, x₀s, truths_validation, x₀s_validation, params_validation, validation_data,
+        training_data, training_timeframe, scaling_params,
+        grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size;
+        sim_index=sim_indices, epoch=i, maxiter=maxiter, rule=optimizer)
 
     # Save training results (best parameters, optimizer state, losses)
     jldsave(joinpath(FILE_DIR, "training_results_epoch$(epoch)_end$(training_timeframe[end]).jld2");
@@ -316,14 +322,19 @@ for (i, (epoch, optimizer, maxiter, training_timeframe)) in enumerate(zip(end_ep
     for (i, data) in enumerate(training_data_plot.data)
         sol = diagnose_fields(mode, ps, params_plot[i], x₀s_plot[i], ps_baseclosure, sts, NNs, data, length(plot_timeframe),
                              grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, 2)
-        animate_data(mode, data, sol.sols_dimensional, sol.fluxes, sol.diffusivities, sol.sols_dimensional_noNN, sol.fluxes_noNN, sol.diffusivities_noNN, i, FILE_DIR, length(plot_timeframe); suffix="epoch$(epoch)_end$(training_timeframe[end])")
+        animate_data(mode, data, sol.sols_dimensional, sol.fluxes, sol.diffusivities, 
+                     sol.sols_dimensional_noNN, sol.fluxes_noNN, sol.diffusivities_noNN, 
+                     i, FILE_DIR, length(plot_timeframe); suffix="epoch$(epoch)_end$(training_timeframe[end])")
     end
 
     # Generate animations for validation data (full time horizon for generalization assessment)
     for (i, data) in enumerate(validation_data_plot.data)
-        sol = diagnose_fields(mode, ps, params_validation_plot[i], x₀s_validation_plot[i], ps_baseclosure, sts, NNs, data, length(complete_timeframe),
-                             grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, 2)
-        animate_data(mode, data, sol.sols_dimensional, sol.fluxes, sol.diffusivities, sol.sols_dimensional_noNN, sol.fluxes_noNN, sol.diffusivities_noNN, i, FILE_DIR, length(plot_timeframe); suffix="epoch$(epoch)_end$(training_timeframe[end])", prefix="validation")
+        sol = diagnose_fields(mode, ps, params_validation_plot[i], x₀s_validation_plot[i], ps_baseclosure, 
+                              sts, NNs, data, length(complete_timeframe),
+                              grid_point_below_kappa, grid_point_above_kappa, Riᶜ, window_split_size, 2)
+        animate_data(mode, data, sol.sols_dimensional, sol.fluxes, sol.diffusivities, 
+                     sol.sols_dimensional_noNN, sol.fluxes_noNN, sol.diffusivities_noNN, 
+                     i, FILE_DIR, length(plot_timeframe); suffix="epoch$(epoch)_end$(training_timeframe[end])", prefix="validation")
     end
 
     # Plot training and validation loss curves
