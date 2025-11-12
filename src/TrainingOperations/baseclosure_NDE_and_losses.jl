@@ -156,6 +156,10 @@ function individual_loss(mode::BaseClosureMode, ps, truth, params, x₀)
 
     ∂u∂z_loss = mean((∂u∂z .- truth.∂u∂z).^2)
     ∂v∂z_loss = mean((∂v∂z .- truth.∂v∂z).^2)
+
+    # Exclude last 3 grid points for tracer gradients as these are different due to imposition of boundary conditions in the LES
+    # e.g. for some tracer ϕ:
+    # -κ * ∂ϕ∂z = J_ϕ at boundaries for LES, which is not true in the NDE solver
     ∂T∂z_loss = mean((∂T∂z .- truth.∂T∂z)[1:end-3, :].^2)
     ∂S∂z_loss = mean((∂S∂z .- truth.∂S∂z)[1:end-3, :].^2)
     ∂ρ∂z_loss = mean((∂ρ∂z .- truth.∂ρ∂z)[1:end-3, :].^2)
