@@ -15,7 +15,11 @@ export
     predict_diffusivities, predict_diffusivities!,
     predict_diffusive_flux, predict_diffusive_boundary_flux_dimensional,
     compute_density_contribution,
-    animate_data, plot_loss
+    animate_data, plot_loss,
+    BaseClosureMode, NNMode,
+    solve_NDE, diagnose_fields,
+    individual_loss, loss, compute_loss_prefactor_density_contribution, loss_multipleics,
+    predict_residual_flux, predict_residual_flux_dimensional
 
 include("Operators/Operators.jl")
 include("Utils/Utils.jl")

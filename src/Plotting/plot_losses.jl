@@ -20,7 +20,7 @@ Saves plot to `\$(output_dir)/losses_epoch\$(epoch).png`
 """
 function plot_loss(::BaseClosureMode, losses, output_dir; epoch=1)
     colors = distinguishable_colors(10, [RGB(1,1,1), RGB(0,0,0)], dropseed=true)
-    
+
     fig = Figure(size=(1000, 600))
     axtotalloss = CairoMakie.Axis(fig[1, 1], title="Total Loss", xlabel="Iterations", ylabel="Loss", yscale=log10)
 
@@ -28,4 +28,33 @@ function plot_loss(::BaseClosureMode, losses, output_dir; epoch=1)
 
     axislegend(axtotalloss, position=:lb)
     save("$(output_dir)/losses_epoch$(epoch).png", fig, px_per_unit=8)
+end
+
+"""
+    plot_loss(::NNMode, losses, output_dir; suffix=1)
+
+Plot training and validation loss history for neural network training.
+
+Creates a log-scale plot comparing total training loss and validation loss vs iterations.
+
+# Arguments
+- `::NNMode`: Training mode indicator
+- `losses`: NamedTuple containing `total` and `total_validation` loss arrays
+- `output_dir`: Directory path for saving the plot
+- `suffix=1`: Suffix for filename (typically epoch number)
+
+# Output
+Saves plot to `\$(output_dir)/losses_\$(suffix).png`
+"""
+function plot_loss(::NNMode, losses, output_dir; suffix=1)
+    colors = distinguishable_colors(10, [RGB(1,1,1), RGB(0,0,0)], dropseed=true)
+
+    fig = Figure(size=(1000, 600))
+    axtotalloss = CairoMakie.Axis(fig[1, 1], title="Total Loss", xlabel="Iterations", ylabel="Loss", yscale=log10)
+
+    lines!(axtotalloss, losses.total, label="Total Loss", color=colors[1])
+    lines!(axtotalloss, losses.total_validation, label="Total Validation Loss", color=colors[2])
+
+    axislegend(axtotalloss, position=:lb)
+    save("$(output_dir)/losses_$(suffix).png", fig, px_per_unit=8)
 end
