@@ -19,7 +19,9 @@ export
     BaseClosureMode, NNMode,
     solve_NDE, diagnose_fields,
     individual_loss, loss, compute_loss_prefactor_density_contribution, loss_multipleics,
-    predict_residual_flux, predict_residual_flux_dimensional
+    predict_residual_flux, predict_residual_flux_dimensional,
+    NORiBaseVerticalDiffusivity, NORiNNFluxClosure,
+    NORiClosureTuple, NORiBaseClosureOnly, NORiClosureWithNN
 
 include("Operators/Operators.jl")
 include("Utils/Utils.jl")
@@ -28,6 +30,7 @@ include("Closures/Closures.jl")
 include("ODEOperations/ODEOperations.jl")
 include("TrainingOperations/TrainingOperations.jl")
 include("Plotting/Plotting.jl")
+include("Implementation/Implementation.jl")
 
 using .Operators
 using .DataWrangling
@@ -36,5 +39,6 @@ using .ODEOperations
 using .TrainingOperations
 using .Utils
 using .Plotting
+using .Implementation
 
 end
