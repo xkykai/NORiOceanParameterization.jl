@@ -2,8 +2,13 @@ using CairoMakie
 
 zs = -1:0.1:0
 initial_stratification = 0:0.1:1
+
+# When there is no entrainment, a steep thermocline is not formed
 bs_noentrainment = vcat(collect(0:0.1:0.5), repeat([0.5], 5))
 zs_fine = -1:0.01:0
+
+# When there is entrainment, a steep thermocline is formed
+# Buoyancy is conserved between entrainment and no entrainment cases
 b_entrainment = (0.375 - 0.3^2 / 2) / 0.7
 bs_entrainment = vcat(collect(0:0.01:0.3), repeat([b_entrainment], 70))
 
