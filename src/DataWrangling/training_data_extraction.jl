@@ -10,7 +10,7 @@ function __init__()
         """
         A Salty Ocean Boundary Layer Large-Eddy Simulations Dataset
         """,
-        "https://zenodo.org/api/records/16278001/files/SOBLLES_jld2.tar/content",
+        "https://zenodo.org/api/records/17677802/files/SOBLLES_jld2.tar/content",
         post_fetch_method = unpack
     ))
 end
