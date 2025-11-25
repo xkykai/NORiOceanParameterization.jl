@@ -15,7 +15,7 @@ const ρ₀ = TEOS10EquationOfState().reference_density
 colors = Makie.wong_colors();
 
 # Directories for model results
-PHYSICALCLOSURE_DIR = "./figure_data/k_epsilon_inference_results"  # Can also use CATKE results
+PHYSICALCLOSURE_DIR = "./figure_data/CATKE_inference_results"  # Can also use CATKE results
 NN_DIR = "./figure_data/NN_inference_results"
 
 # Load LES data and scaling parameters
@@ -181,14 +181,14 @@ with_theme(theme_latexfonts()) do
 
     # Plot k-epsilon closure
     for (i, ax) in enumerate(axTs)
-        label = i == 1 ? "k-ϵ closure" : nothing
-        lines!(ax, physicalclosure_datasets[i].T[z_indices, timeframe], zC[z_indices], color=colors[6], linestyle=NDE_linestyle, linewidth=initial_linewidth, label=label)
+        label = i == 1 ? "CATKE closure" : nothing
+        lines!(ax, physicalclosure_datasets[i].T[z_indices, timeframe], zC[z_indices], color=colors[2], linestyle=NDE_linestyle, linewidth=initial_linewidth, label=label)
     end
     for (i, ax) in enumerate(axSs)
-        lines!(ax, physicalclosure_datasets[i].S[z_indices, timeframe], zC[z_indices], color=colors[6], linestyle=NDE_linestyle, linewidth=initial_linewidth)
+        lines!(ax, physicalclosure_datasets[i].S[z_indices, timeframe], zC[z_indices], color=colors[2], linestyle=NDE_linestyle, linewidth=initial_linewidth)
     end
     for (i, ax) in enumerate(axbs)
-        lines!(ax, bs_physicalclosure[i], zC[z_indices], color=colors[6], linestyle=NDE_linestyle, linewidth=initial_linewidth)
+        lines!(ax, bs_physicalclosure[i], zC[z_indices], color=colors[2], linestyle=NDE_linestyle, linewidth=initial_linewidth)
     end
     
     # Plot NORi closure
@@ -220,5 +220,5 @@ with_theme(theme_latexfonts()) do
     Legend(fig[7, :], axT1, orientation=:horizontal, patchsize=(50, 20))
 
     display(fig)
-    # save("./figures/results_vs_kepsilon.pdf", fig)
+    # save("./figures/results_vs_CATKE.pdf", fig)
 end
