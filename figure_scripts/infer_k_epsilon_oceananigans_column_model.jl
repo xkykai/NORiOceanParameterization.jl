@@ -6,19 +6,23 @@ using Oceananigans.TurbulenceClosures: TKEDissipationVerticalDiffusivity
 using CairoMakie
 using Printf
 using Statistics
-
 using SeawaterPolynomials
-using SeawaterPolynomials:TEOS10
+using SeawaterPolynomials: TEOS10
 using NORiOceanParameterization
 
-# Architecture
+#####
+##### Setup
+#####
+
 model_architecture = CPU()
+
+# Load LES training data
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")
 data_path = joinpath(SOBLLES_path, "data")
 cases = readdir(data_path)
 field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in cases]
 
-# number of grid points
+# Grid configuration
 const Nz = 32
 const Lz = 256
 
@@ -30,25 +34,39 @@ grid = RectilinearGrid(model_architecture,
 
 OUTPUT_DIR = joinpath(pwd(), "figure_data", "k_epsilon_inference_results")
 
+#####
+##### Run k-epsilon model simulation
+#####
+
+"""
+    run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
+
+Run column model simulation using k-epsilon turbulence closure.
+Matches initial conditions and forcing from LES data.
+"""
 function run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
+    # Extract metadata from LES data
     dTdz = data.metadata["temperature_gradient"]
     dSdz = data.metadata["salinity_gradient"]
-
     T_surface = data.metadata["surface_temperature"]
     S_surface = data.metadata["surface_salinity"]
+    f₀ = data.metadata["coriolis_parameter"]
 
+    # Boundary conditions matching LES forcing
     T_bcs = FieldBoundaryConditions(top=FluxBoundaryCondition(data.metadata["temperature_flux"]))
     S_bcs = FieldBoundaryConditions(top=FluxBoundaryCondition(data.metadata["salinity_flux"]))
     u_bcs = FieldBoundaryConditions(top=FluxBoundaryCondition(data.metadata["momentum_flux"]))
 
-    f₀ = data.metadata["coriolis_parameter"]
     coriolis = FPlane(f=f₀)
 
+    # Linear initial stratification
     T_initial(z) = dTdz * z + T_surface
     S_initial(z) = dSdz * z + S_surface
 
+    # k-epsilon turbulence closure
     closure = TKEDissipationVerticalDiffusivity()
 
+    # Build model with e and ϵ as tracers for TKE dissipation scheme
     model = HydrostaticFreeSurfaceModel(
         grid = grid,
         free_surface = ImplicitFreeSurface(),
@@ -57,23 +75,25 @@ function run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
         buoyancy = SeawaterBuoyancy(equation_of_state=TEOS10.TEOS10EquationOfState()),
         coriolis = coriolis,
         closure = closure,
-        tracers = (:T, :S, :e, :ϵ),
+        tracers = (:T, :S, :e, :ϵ),  # e = TKE, ϵ = dissipation rate
         boundary_conditions = (; T = T_bcs, S = S_bcs, u = u_bcs),
     )
 
+    # Add small noise for numerical stability
     noise(z) = rand() * exp(z / 8)
-
     T_initial_noisy(z) = T_initial(z) + 1e-6 * noise(z)
     S_initial_noisy(z) = S_initial(z) + 1e-6 * noise(z)
 
     set!(model, T=T_initial_noisy, S=S_initial_noisy)
     update_state!(model)
 
+    # Simulation configuration
     Δt₀ = 5minutes
     stop_time = 2days
 
     simulation = Simulation(model, Δt = Δt₀, stop_time = stop_time)
 
+    # Progress monitoring
     wall_clock = [time_ns()]
 
     function print_progress(sim)
@@ -87,15 +107,19 @@ function run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
             prettytime(sim.Δt))
 
         wall_clock[1] = time_ns()
-
         return nothing
     end
 
     simulation.callbacks[:print_progress] = Callback(print_progress, IterationInterval(200))
 
+    #####
+    ##### Diagnostics
+    #####
+
     u, v, w = model.velocities
     T, S = model.tracers.T, model.tracers.S
 
+    # Custom kernel for computing density from T and S
     @inline function get_density(i, j, k, grid, b, C)
         eos = TEOS10.TEOS10EquationOfState()
         T, S = Oceananigans.BuoyancyModels.get_temperature_and_salinity(b, C)
@@ -106,15 +130,18 @@ function run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
     ρ_op = KernelFunctionOperation{Nothing, Nothing, Center}(get_density, model.grid, model.buoyancy, model.tracers)
     ρ = Field(ρ_op)
 
+    # Diffusivities from k-epsilon closure
     ν = model.diffusivity_fields.κc
     κ = model.diffusivity_fields.κu
 
+    # Gradients
     ∂u∂z = ∂z(u)
     ∂v∂z = ∂z(v)
     ∂T∂z = ∂z(T)
     ∂S∂z = ∂z(S)
     ∂ρ∂z = ∂z(ρ)
 
+    # Turbulent fluxes (down-gradient approximation)
     uw = ν * ∂u∂z
     vw = ν * ∂v∂z
     wT = κ * ∂T∂z
@@ -122,12 +149,13 @@ function run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
 
     averaged_outputs = (; u, v, T, S, ρ, ν, κ, uw, vw, wT, wS, ∂u∂z, ∂v∂z, ∂T∂z, ∂S∂z, ∂ρ∂z)
 
+    #####
+    ##### Output writer
+    #####
+
     mkpath(OUTPUT_DIR)
     filepath = joinpath(OUTPUT_DIR, prefix)
 
-    # #####
-    # ##### Build checkpointer and output writer
-    # #####
     simulation.output_writers[:jld2] = JLD2OutputWriter(model, averaged_outputs,
         filename = filepath,
         schedule = TimeInterval(10minutes),
@@ -138,4 +166,10 @@ function run_inference_k_epsilon(data, grid, OUTPUT_DIR, prefix)
     run!(simulation)
 end
 
-results = [run_inference_k_epsilon(field_dataset, grid, OUTPUT_DIR, case) for (field_dataset, case) in zip(field_datasets, cases)]
+#####
+##### Run all cases
+#####
+
+for (field_dataset, case) in zip(field_datasets, cases)
+    run_inference_k_epsilon(field_dataset, grid, OUTPUT_DIR, case)
+end
