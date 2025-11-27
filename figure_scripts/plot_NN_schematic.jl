@@ -11,8 +11,6 @@ using Makie
 colors = Makie.wong_colors();
 SOLS_DIR = joinpath(@__DIR__, "..", "figure_data", "ODE_inference", "NN_results.jld2")
 
-mapping = jldopen("./figure_data/mapping_old_new_simulation_suite.jld2", "r")["mapping"]
-
 casename = "windsandconvection_01"
 sol = jldopen(SOLS_DIR, "r")["training/$(casename)"]
 
