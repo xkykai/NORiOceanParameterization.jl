@@ -16,13 +16,18 @@ using SeawaterPolynomials.TEOS10
 #####
 
 const ρ₀ = TEOS10EquationOfState().reference_density
-colors = Makie.wong_colors()
+colors = Makie.wong_colors();
 
 #####
 ##### Load data
 #####
 
-filepath = "./figure_data/doublegyre_results/zonal_average_stratification_kepsilon_2.5years.jld2"
+years = 2.5
+
+# Uncomment this for 100 years data (shown in appendix of paper)
+# years = 100
+
+filepath = "./figure_data/doublegyre_results/zonal_average_stratification_kepsilon_$(years)years.jld2"
 
 NN_field, physicalclosure_field, baseclosure_field, Δ_field, Δ_baseclosure_field, grid, times = jldopen(filepath, "r") do file
     return (file["NN_field"], file["physicalclosure_field"], file["baseclosure_field"], 
@@ -119,7 +124,15 @@ with_theme(theme_latexfonts()) do
     # Link all axes to share zoom/pan
     linkaxes!(axNN, axbase, axphysicalclosure, axΔ, axΔbase)
 
+
+    axs = [axNN, axbase, axphysicalclosure, axΔ, axΔbase]
+
+    for ax in axs
+        xlims!(ax, minimum(yC), maximum(yC))
+        ylims!(ax, minimum(zC), maximum(zC))
+    end
+
     display(fig)
 
-    # save("./figures/double_gyre_zonalaverage_stratification_kepsilon.pdf", fig)
+    # save("./figures/double_gyre_zonalaverage_stratification_kepsilon_$(years)years.pdf", fig)
 end
