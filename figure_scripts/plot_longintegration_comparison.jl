@@ -10,7 +10,7 @@ using NORiOceanParameterization.Utils: find_min, find_max
 
 file_types = ["NN", "kepsilon"]
 file_labels = ["NORi", "k-ϵ"]
-FILE_DIR = joinpath(pwd(), "figure_data", "long_integration_results")
+FILE_DIR = joinpath(pwd(), "figure_data", "long_integration")
 
 # Common filename pattern for column model results
 filename_pattern = "aperiodic_T_86400.0_S_227368.51200000002_dt_300.0_dTdz_0.009765625_dSdz_0.00146484375_QT_0.0002_QS_-2.0e-5_QU_-0.0001_f_0.0001.jld2"
@@ -54,7 +54,7 @@ z_ind_LES = findfirst(x -> x >= z_bottom, zC_LES):length(zC_LES)
 ##### Plotting
 #####
 
-colors = Makie.wong_colors()
+colors = Makie.wong_colors();
 n = 721  # Time index to plot
 
 with_theme(theme_latexfonts()) do
