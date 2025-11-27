@@ -191,5 +191,5 @@ with_theme(theme_latexfonts()) do
 
       display(fig)
   
-      # save("./Output/double_gyre_setup_test.pdf", fig)
+      # save("./figures/double_gyre_setup_test.pdf", fig)
 end
