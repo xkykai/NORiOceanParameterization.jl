@@ -23,16 +23,19 @@ Ris = -0.5:0.001:1
 ##### Load inference results and datasets
 #####
 
-SOLS_DIR = joinpath(pwd(), "figure_data", "baseclosure_inference_results.jld2")
+SOLS_DIR = joinpath(pwd(), "figure_data", "ODE_inference", "baseclosure_results.jld2")
 sols = jldopen(SOLS_DIR, "r")
 
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")
 data_path = joinpath(SOBLLES_path, "data")
 cases = readdir(data_path)
-field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in cases]
+plot_cases = ["winds_04", "freeconvection_08", "winds_07", "windsandheating_31"]
+
+field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in plot_cases]
 
 coarse_size = 32
-full_timeframes = [25:length(data["ubar"].times) for data in field_datasets]
+start_timeframe = 25
+full_timeframes = [start_timeframe:length(data["ubar"].times) for data in field_datasets]
 dataset = LESDatasets(field_datasets, ZeroMeanUnitVarianceScaling, full_timeframes)
 
 #####
@@ -127,13 +130,10 @@ with_theme(theme_latexfonts()) do
     #####
     ##### Plot results for selected cases
     #####
-    
-    plot_cases = ["winds_04", "freeconvection_08", "winds_07", "windsandheating_31"]
+
     frame = 250  # Time snapshot to plot
 
-    for (case, axuv, axT, axS, axσ) in zip(plot_cases, axuvs, axTs, axSs, axσs)
-        i = findfirst(x -> x == case, cases)
-        
+    for (i, (case, axuv, axT, axS, axσ)) in enumerate(zip(plot_cases, axuvs, axTs, axSs, axσs))
         # Compute buoyancy (normalized to surface value)
         b_initial = b_from_ρ.(dataset.data[i].profile.ρ.unscaled[:, 1])
         b_top = b_initial[end]
@@ -199,7 +199,5 @@ with_theme(theme_latexfonts()) do
     
     trim!(fig.layout)
     display(fig)
-    # save("./paper_figures/localbaseclosure_results.pdf", fig)
+    # save("./figures/localbaseclosure_results.pdf", fig)
 end
-
-#%%
