@@ -28,7 +28,6 @@ sols = jldopen(SOLS_DIR, "r")
 
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")
 data_path = joinpath(SOBLLES_path, "data")
-cases = readdir(data_path)
 plot_cases = ["winds_04", "freeconvection_08", "winds_07", "windsandheating_31"]
 
 field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in plot_cases]
@@ -42,7 +41,7 @@ dataset = LESDatasets(field_datasets, ZeroMeanUnitVarianceScaling, full_timefram
 ##### Plotting configuration
 #####
 
-colors = Makie.wong_colors()
+colors = Makie.wong_colors();
 zC = -252:8:0  # Vertical coordinates
 
 # Line styles
