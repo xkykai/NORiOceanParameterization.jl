@@ -80,4 +80,3 @@ statprof
 *.csv
 
 !calibrated_parameters/*
-!figure_data/*
