@@ -11,7 +11,21 @@ using SeawaterPolynomials.TEOS10
 #####
 
 const ρ₀ = TEOS10EquationOfState().reference_density
-colors = Makie.wong_colors()
+colors = Makie.wong_colors();
+
+#####
+##### Select cases for visualization
+#####
+
+# Training cases - used during neural network training
+result_names = ["windsandconvection_03", "freeconvection_15", "windsandconvection_15"]
+result_titles = ["Strong wind strong cooling", "Free convection", "Weak wind strong evaporation"]
+result_subtitles = ["Midlatitude Atlantic", "Southern Ocean", "Equatorial Pacific"]
+
+# Validation cases - held out during training
+result_names_validation = ["windsandconvection_38", "windsandconvection_51", "windsandconvection_40"]
+result_titles_validation = ["Weak wind strong convection", "Strong wind weak convection", "Moderate wind weak convection"]
+result_subtitles_validation = ["Cooling + evaporation", "Cooling + evaporation", "Cooling + evaporation"]
 
 #####
 ##### Load LES data and scaling parameters
@@ -19,8 +33,8 @@ colors = Makie.wong_colors()
 
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")
 data_path = joinpath(SOBLLES_path, "data")
-cases = readdir(data_path)
-field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in cases]
+plot_cases = vcat(result_names, result_names_validation)
+field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in plot_cases]
 
 nn_model_path = joinpath(pwd(), "calibrated_parameters", "NNclosure_weights.jld2")
 scaling_params = jldopen(nn_model_path, "r") do file
@@ -35,24 +49,8 @@ dataset = LESDatasets(field_datasets, scaling, full_timeframes)
 ##### Load inference results
 #####
 
-FILE_DIR = "./figure_data/NN_inference_results.jld2"
+FILE_DIR = joinpath(pwd(), "figure_data", "ODE_inference", "NN_results.jld2")
 results = jldopen(FILE_DIR, "r")
-
-#####
-##### Select cases for visualization
-#####
-
-# Training cases - used during neural network training
-result_names = ["windsandconvection_03", "freeconvection_15", "windsandconvection_15"]
-result_indices = [findfirst(x -> x == name, cases) for name in result_names]
-result_titles = ["Strong wind strong cooling", "Free convection", "Weak wind strong evaporation"]
-result_subtitles = ["Midlatitude Atlantic", "Southern Ocean", "Equatorial Pacific"]
-
-# Validation cases - held out during training
-result_names_validation = ["windsandconvection_38", "windsandconvection_51", "windsandconvection_40"]
-result_indices_validation = [findfirst(x -> x == name, cases) for name in result_names_validation]
-result_titles_validation = ["Weak wind strong convection", "Strong wind weak convection", "Moderate wind weak convection"]
-result_subtitles_validation = ["Cooling + evaporation", "Cooling + evaporation", "Cooling + evaporation"]
 
 #####
 ##### Plotting configuration
@@ -89,7 +87,7 @@ bs = [bs[i] .- bs_top[i] for i in 1:length(bs)]
 bs_noNN = [b_from_ρ.(results["training/$(name)"].sols_dimensional_noNN.ρ[:, timeframe]) for name in result_names]
 bs_noNN = [bs_noNN[i] .- bs_top[i] for i in 1:length(bs_noNN)]
 
-bs_LES = [b_from_ρ.(dataset.data[index].profile.ρ.unscaled[:, timeframe]) for index in result_indices]
+bs_LES = [b_from_ρ.(data.profile.ρ.unscaled[:, timeframe]) for data in dataset.data[1:3]]
 bs_LES = [bs_LES[i] .- bs_top[i] for i in 1:length(bs_LES)]
 
 # Validation cases - buoyancy profiles normalized by surface value
@@ -103,7 +101,7 @@ bs_validation = [bs_validation[i] .- bs_top_validation[i] for i in 1:length(bs_v
 bs_noNN_validation = [b_from_ρ.(results["validation/$(name)"].sols_dimensional_noNN.ρ[:, timeframe]) for name in result_names_validation]
 bs_noNN_validation = [bs_noNN_validation[i] .- bs_top_validation[i] for i in 1:length(bs_noNN_validation)]
 
-bs_LES_validation = [b_from_ρ.(dataset.data[index].profile.ρ.unscaled[:, timeframe]) for index in result_indices_validation]
+bs_LES_validation = [b_from_ρ.(data.profile.ρ.unscaled[:, timeframe]) for data in dataset.data[4:6]]
 bs_LES_validation = [bs_LES_validation[i] .- bs_top_validation[i] for i in 1:length(bs_LES_validation)]
 
 #####
@@ -170,19 +168,19 @@ with_theme(theme_latexfonts()) do
     ##### Plot LES reference solutions
     #####
     
-    lines!(axT1, dataset.data[result_indices[1]].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth, label="Large eddy simulation")
-    lines!(axT2, dataset.data[result_indices[2]].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axT3, dataset.data[result_indices[3]].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axT4, dataset.data[result_indices_validation[1]].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axT5, dataset.data[result_indices_validation[2]].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axT6, dataset.data[result_indices_validation[3]].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axT1, dataset.data[1].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth, label="Large eddy simulation")
+    lines!(axT2, dataset.data[2].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axT3, dataset.data[3].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axT4, dataset.data[4].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axT5, dataset.data[5].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axT6, dataset.data[6].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
 
-    lines!(axS1, dataset.data[result_indices[1]].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axS2, dataset.data[result_indices[2]].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axS3, dataset.data[result_indices[3]].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axS4, dataset.data[result_indices_validation[1]].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axS5, dataset.data[result_indices_validation[2]].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
-    lines!(axS6, dataset.data[result_indices_validation[3]].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axS1, dataset.data[1].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axS2, dataset.data[2].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axS3, dataset.data[3].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axS4, dataset.data[4].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axS5, dataset.data[5].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
+    lines!(axS6, dataset.data[6].profile.S.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
 
     lines!(axb1, bs_LES[1], zC, color=LES_color, linewidth=LES_linewidth)
     lines!(axb2, bs_LES[2], zC, color=LES_color, linewidth=LES_linewidth)
@@ -269,6 +267,6 @@ with_theme(theme_latexfonts()) do
     Legend(fig[7, :], axT1, orientation=:horizontal, patchsize=(50, 20))
 
     display(fig)
-    # save("./paper_figures/training_results.pdf", fig)
+    # save("./figures/NN_training_results.pdf", fig)
 end
 #%%
