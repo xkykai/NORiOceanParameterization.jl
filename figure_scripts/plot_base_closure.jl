@@ -136,17 +136,17 @@ with_theme(theme_latexfonts()) do
         # Compute buoyancy (normalized to surface value)
         b_initial = b_from_ρ.(dataset.data[i].profile.ρ.unscaled[:, 1])
         b_top = b_initial[end]
-        b = b_from_ρ.(dataset.data[i].profile.ρ.unscaled[:, frame]) .- b_top
+        b = b_from_ρ.(sols[case].sols_dimensional.ρ[:, frame]) .- b_top
         b_LES = b_from_ρ.(dataset.data[i].profile.ρ.unscaled[:, frame]) .- b_top
         b_initial = b_initial .- b_top
 
         # Initial stratification
-        lines!(axT, dataset.data[i].profile.T.unscaled[:, 1], zC, label="Initial stratification", 
-               color=colors[4], linestyle=:dash, linewidth=initial_linewidth)
-        lines!(axS, dataset.data[i].profile.S.unscaled[:, 1], zC, label="Initial stratification", 
-               color=colors[4], linestyle=:dash, linewidth=initial_linewidth)
-        lines!(axσ, b_initial, zC, label="Initial stratification", 
-               color=colors[4], linestyle=:dash, linewidth=initial_linewidth)
+        lines!(axT, dataset.data[i].profile.T.unscaled[:, 1], zC, label="Initial profile", 
+               color=colors[4], linestyle=(:dash, :dense), linewidth=initial_linewidth)
+        lines!(axS, dataset.data[i].profile.S.unscaled[:, 1], zC, label="Initial profile", 
+               color=colors[4], linestyle=(:dash, :dense), linewidth=initial_linewidth)
+        lines!(axσ, b_initial, zC, label="Initial profile", 
+               color=colors[4], linestyle=(:dash, :dense), linewidth=initial_linewidth)
 
         # LES results
         lines!(axuv, dataset.data[i].profile.u.unscaled[:, frame], zC, label="u (Large eddy simulation)", 
@@ -198,5 +198,5 @@ with_theme(theme_latexfonts()) do
     
     trim!(fig.layout)
     display(fig)
-    # save("./figures/localbaseclosure_results.pdf", fig)
+#     save("./figures/localbaseclosure_results.pdf", fig)
 end
