@@ -1,6 +1,6 @@
 # We activate a special environment for this script for compatibility reasons since the simulation was run with the specific versions
 using Pkg
-Pkg.activate("figure_scripts")
+Pkg.activate(@__DIR__)
 
 using CairoMakie
 using JLD2
@@ -14,7 +14,7 @@ using SeawaterPolynomials.TEOS10
 const ρ₀ = TEOS10EquationOfState().reference_density
 const g_Earth = Oceananigans.BuoyancyModels.g_Earth
 
-FILE_DIR = "./figure_data/doublegyre_results"
+FILE_DIR = joinpath(@__DIR__, "..", "figure_data", "doublegyre")
 
 # Load pre-computed double gyre data from file
 b_xy, b_yz, b_xz, b_zonal, Ψ, T_xy, z_depth, T_surfaces, S_surfaces, Ψ_data, ys, uw_surface = jldopen(joinpath(FILE_DIR, "doublegyre_setup_data.jld2"), "r") do file
@@ -191,5 +191,5 @@ with_theme(theme_latexfonts()) do
 
       display(fig)
   
-      # save("./figures/double_gyre_setup_test.pdf", fig)
+      # save("./figures/double_gyre_setup.pdf", fig)
 end
