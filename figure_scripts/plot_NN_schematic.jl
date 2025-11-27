@@ -8,8 +8,8 @@ using Makie
 ##### Load Data
 #####
 
-colors = Makie.wong_colors()
-SOLS_DIR = "./figure_data/NN_inference_results.jld2"
+colors = Makie.wong_colors();
+SOLS_DIR = joinpath(@__DIR__, "..", "figure_data", "ODE_inference", "NN_results.jld2")
 
 mapping = jldopen("./figure_data/mapping_old_new_simulation_suite.jld2", "r")["mapping"]
 
