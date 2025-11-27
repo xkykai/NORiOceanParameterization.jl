@@ -22,7 +22,7 @@ colors = Makie.wong_colors()
 ##### Load data
 #####
 
-filepath = "./figure_data/doublegyre_results/zonal_average_stratification_kepsilon.jld2"
+filepath = "./figure_data/doublegyre_results/zonal_average_stratification_kepsilon_2.5years.jld2"
 
 NN_field, physicalclosure_field, baseclosure_field, Δ_field, Δ_baseclosure_field, grid, times = jldopen(filepath, "r") do file
     return (file["NN_field"], file["physicalclosure_field"], file["baseclosure_field"], 
