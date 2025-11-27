@@ -71,6 +71,7 @@ statprof
 /batch_scripts
 /logs
 /ARGO
+/figure_data*
 
 # Additional file types
 *.sh
