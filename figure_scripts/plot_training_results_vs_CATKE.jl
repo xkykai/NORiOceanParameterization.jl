@@ -15,15 +15,15 @@ const ρ₀ = TEOS10EquationOfState().reference_density
 colors = Makie.wong_colors();
 
 # Directories for model results
-PHYSICALCLOSURE_DIR = "./figure_data/CATKE_inference_results"  # Can also use CATKE results
-NN_DIR = "./figure_data/NN_inference_results"
+PHYSICALCLOSURE_DIR = joinpath(@__DIR__, "..", "figure_data", "oceananigans_column", "CATKE")  # Can also use k-ϵ results
+NN_DIR = joinpath(@__DIR__, "..", "figure_data", "oceananigans_column", "NORi")
 
 # Load LES data and scaling parameters
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")
 data_path = joinpath(SOBLLES_path, "data")
 cases = readdir(data_path)
 
-nn_model_path = joinpath(pwd(), "calibrated_parameters", "NNclosure_weights.jld2")
+nn_model_path = joinpath(@__DIR__, "..", "calibrated_parameters", "NNclosure_weights.jld2")
 scaling_params = jldopen(nn_model_path, "r") do file
     return file["scaling"]
 end
@@ -98,6 +98,7 @@ timeframe = 264
 # Line style configuration
 initial_linestyle = :dash
 initial_linewidth = 5
+plot_titlesize = 20
 NDE_linestyle = :solid
 LES_linewidth = 15
 LES_color = (colors[3], 0.5)
