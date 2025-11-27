@@ -2,8 +2,8 @@ using JLD2
 using CairoMakie
 using Makie
 
-colors = Makie.wong_colors()
-FILE_DIR = joinpath(pwd(), "figure_data")
+colors = Makie.wong_colors();
+FILE_DIR = joinpath(pwd(), "figure_data", "losses")
 
 #####
 ##### Load Training Losses
@@ -144,5 +144,5 @@ with_theme(theme_latexfonts()) do
     axislegend(ax3, position=:rt)
 
     display(fig)
-    # save("./paper_figures/NDE_losses_4.svg", fig)
+    # save("./figures/NDE_losses.svg", fig)
 end
