@@ -516,9 +516,21 @@ function diagnose_fields(mode::NNMode, ps, params, x₀, ps_baseclosure, sts, NN
     Ss_noNN = inv(scaling.S).(sols_noNN.S)
     ρs_noNN = inv(scaling.ρ).(sols_noNN.ρ)
 
-    ∂T∂z_hats = hcat([params.scaling.∂T∂z.(params.Dᶠ * T) for T in eachcol(Ts)]...)
-    ∂S∂z_hats = hcat([params.scaling.∂S∂z.(params.Dᶠ * S) for S in eachcol(Ss)]...)
-    ∂ρ∂z_hats = hcat([params.scaling.∂ρ∂z.(params.Dᶠ * ρ) for ρ in eachcol(ρs)]...)
+    ∂u∂zs = hcat([params.Dᶠ * u for u in eachcol(us)]...)
+    ∂v∂zs = hcat([params.Dᶠ * v for v in eachcol(vs)]...)
+    ∂T∂zs = hcat([params.Dᶠ * T for T in eachcol(Ts)]...)
+    ∂S∂zs = hcat([params.Dᶠ * S for S in eachcol(Ss)]...)
+    ∂ρ∂zs = hcat([params.Dᶠ * ρ for ρ in eachcol(ρs)]...)
+
+    ∂T∂z_hats = scaling.∂T∂z.(∂T∂zs)
+    ∂S∂z_hats = scaling.∂S∂z.(∂S∂zs)
+    ∂ρ∂z_hats = scaling.∂ρ∂z.(∂ρ∂zs)
+
+    ∂u∂zs_noNN = hcat([params.Dᶠ * u for u in eachcol(us_noNN)]...)
+    ∂v∂zs_noNN = hcat([params.Dᶠ * v for v in eachcol(vs_noNN)]...)
+    ∂T∂zs_noNN = hcat([params.Dᶠ * T for T in eachcol(Ts_noNN)]...)
+    ∂S∂zs_noNN = hcat([params.Dᶠ * S for S in eachcol(Ss_noNN)]...)
+    ∂ρ∂zs_noNN = hcat([params.Dᶠ * ρ for ρ in eachcol(ρs_noNN)]...)
 
     eos = TEOS10EquationOfState()
     Ris_truth = hcat([calculate_Ri(u, v, ρ, Dᶠ, params.g, eos.reference_density, clamp_lims=(-Inf, Inf))
@@ -572,8 +584,8 @@ function diagnose_fields(mode::NNMode, ps, params, x₀, ps_baseclosure, sts, NN
     diffusivities = (; ν=νs, κ=κs, Ri=Ris, Ri_truth=Ris_truth)
     diffusivities_noNN = (; ν=νs_noNN, κ=κs_noNN, Ri=Ris_noNN)
 
-    sols_dimensional = (; u=us, v=vs, T=Ts, S=Ss, ρ=ρs)
-    sols_dimensional_noNN = (; u=us_noNN, v=vs_noNN, T=Ts_noNN, S=Ss_noNN, ρ=ρs_noNN)
+    sols_dimensional = (; u=us, v=vs, T=Ts, S=Ss, ρ=ρs, ∂u∂z=∂u∂zs, ∂v∂z=∂v∂zs, ∂T∂z=∂T∂zs, ∂S∂z=∂S∂zs, ∂ρ∂z=∂ρ∂zs)
+    sols_dimensional_noNN = (; u=us_noNN, v=vs_noNN, T=Ts_noNN, S=Ss_noNN, ρ=ρs_noNN, ∂u∂z=∂u∂zs_noNN, ∂v∂z=∂v∂zs_noNN, ∂T∂z=∂T∂zs_noNN, ∂S∂z=∂S∂zs_noNN, ∂ρ∂z=∂ρ∂zs_noNN)
 
     return (; sols_dimensional, sols_dimensional_noNN, fluxes, fluxes_noNN, diffusivities, diffusivities_noNN)
 end
