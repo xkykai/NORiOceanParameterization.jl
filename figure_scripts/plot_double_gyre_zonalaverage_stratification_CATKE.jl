@@ -27,7 +27,7 @@ years = 2.5
 # Uncomment this for 100 years data (shown in appendix of paper)
 # years = 100
 
-filepath = "./figure_data/doublegyre_results/zonal_average_stratification_kepsilon_$(years)years.jld2"
+filepath = "./figure_data/doublegyre_results/zonal_average_stratification_CATKE_$(years)years.jld2"
 
 NN_field, physicalclosure_field, baseclosure_field, Δ_field, Δ_baseclosure_field, grid, times = jldopen(filepath, "r") do file
     return (file["NN_field"], file["physicalclosure_field"], file["baseclosure_field"], 
@@ -58,11 +58,11 @@ find_max(a...) = maximum(maximum.([a...]))
 ##### Compute plot limits
 #####
 
-# Absolute field limits (shared across NORi, k-ϵ, base closures)
+# Absolute field limits (shared across NORi, CATKE, base closures)
 fieldlim = (find_min(NN_field, physicalclosure_field, baseclosure_field), 
             find_max(NN_field, physicalclosure_field, baseclosure_field))
 
-# Symmetric limits for differences (NORi - k-ϵ, NORi - base)
+# Symmetric limits for differences (NORi - CATKE, NORi - base)
 Δ_fieldlim = (-find_max(abs.(Δ_field), abs.(Δ_baseclosure_field)), 
                find_max(abs.(Δ_field), abs.(Δ_baseclosure_field)))
 
@@ -91,11 +91,11 @@ with_theme(theme_latexfonts()) do
     
     # Other closures and differences in right columns
     axphysicalclosure = Axis(fig[1, 3], xlabel="y (km)", ylabel="z (m)", 
-                             title="k-ϵ closure", aspect=AxisAspect(aspect_ratio))
+                             title="CATKE closure", aspect=AxisAspect(aspect_ratio))
     axbase = Axis(fig[2, 3], xlabel="y (km)", ylabel="z (m)", 
                   title="Base closure", aspect=AxisAspect(aspect_ratio))
     axΔ = Axis(fig[1, 4], xlabel="y (km)", ylabel="z (m)", 
-               title="NORi - k-ϵ", aspect=AxisAspect(aspect_ratio))
+               title="NORi - CATKE", aspect=AxisAspect(aspect_ratio))
     axΔbase = Axis(fig[2, 4], xlabel="y (km)", ylabel="z (m)", 
                    title="NORi - base closure", aspect=AxisAspect(aspect_ratio))
 
@@ -124,7 +124,6 @@ with_theme(theme_latexfonts()) do
     # Link all axes to share zoom/pan
     linkaxes!(axNN, axbase, axphysicalclosure, axΔ, axΔbase)
 
-
     axs = [axNN, axbase, axphysicalclosure, axΔ, axΔbase]
 
     for ax in axs
@@ -134,5 +133,5 @@ with_theme(theme_latexfonts()) do
 
     display(fig)
 
-    # save("./figures/double_gyre_zonalaverage_stratification_kepsilon_$(years)years.pdf", fig)
+    # save("./figures/double_gyre_zonalaverage_stratification_CATKE_$(years)years.pdf", fig)
 end
