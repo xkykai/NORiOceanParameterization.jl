@@ -1,6 +1,7 @@
 # We activate a special environment for this script for compatibility reasons since the simulation was run with the specific versions
 using Pkg
 Pkg.activate(@__DIR__)
+include(joinpath(@__DIR__, "register_doublegyre_datadep.jl"))
 
 using CairoMakie
 using JLD2
@@ -14,7 +15,7 @@ using SeawaterPolynomials.TEOS10
 const ρ₀ = TEOS10EquationOfState().reference_density
 const g_Earth = Oceananigans.BuoyancyModels.g_Earth
 
-FILE_DIR = joinpath(@__DIR__, "..", "figure_data", "doublegyre")
+FILE_DIR = get_doublegyre_data_path()
 
 # Load pre-computed double gyre data from file
 b_xy, b_yz, b_xz, b_zonal, Ψ, T_xy, z_depth, T_surfaces, S_surfaces, Ψ_data, ys, uw_surface = jldopen(joinpath(FILE_DIR, "doublegyre_setup_data.jld2"), "r") do file

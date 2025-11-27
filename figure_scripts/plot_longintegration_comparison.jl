@@ -3,6 +3,7 @@ using Oceananigans.Units
 using CairoMakie
 using Makie
 using NORiOceanParameterization.Utils: find_min, find_max
+using NORiOceanParameterization.DataWrangling
 
 #####
 ##### Configuration
@@ -10,7 +11,7 @@ using NORiOceanParameterization.Utils: find_min, find_max
 
 file_types = ["NN", "kepsilon"]
 file_labels = ["NORi", "k-ϵ"]
-FILE_DIR = joinpath(@__DIR__, "..", "figure_data", "long_integration")
+FILE_DIR = get_long_integration_data_path()
 
 # Common filename pattern for column model results
 filename_pattern = "aperiodic_T_86400.0_S_227368.51200000002_dt_300.0_dTdz_0.009765625_dSdz_0.00146484375_QT_0.0002_QS_-2.0e-5_QU_-0.0001_f_0.0001.jld2"

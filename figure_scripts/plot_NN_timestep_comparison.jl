@@ -4,6 +4,7 @@ using CairoMakie
 using Oceananigans.Units
 using Makie
 using NORiOceanParameterization.Utils: find_min, find_max
+using NORiOceanParameterization.DataWrangling
 
 #####
 ##### Timestep comparison settings
@@ -16,7 +17,7 @@ using NORiOceanParameterization.Utils: find_min, find_max
 ##### Load LES reference data
 #####
 
-FILE_DIR = joinpath(@__DIR__, "..", "figure_data", "timestep")
+FILE_DIR = get_timestep_data_path()
 LES_FILE_PATH = joinpath(FILE_DIR, "LES", "timestep_dTdz_0.015_dSdz_0.002_QT_0.0002_QS_-2.0e-5_QU_-0.0001_T_20_S_37_f_0.jld2")
 
 ubar_data_LES = FieldTimeSeries(LES_FILE_PATH, "ubar")

@@ -2,6 +2,7 @@ using Oceananigans
 using CairoMakie
 using ColorSchemes
 using NORiOceanParameterization.Utils: find_min, find_max
+using NORiOceanParameterization.DataWrangling
 using Makie
 using JLD2
 
@@ -9,7 +10,7 @@ using JLD2
 ##### Load Data
 #####
 
-filepath = joinpath(@__DIR__, "..", "figure_data", "LES_3D_fields.jld2")
+filepath = get_LES_3D_fields_data_path()
 
 b_xy_convection, b_yz_convection, b_xz_convection, 
 b_xy_wind, b_yz_wind, b_xz_wind, 

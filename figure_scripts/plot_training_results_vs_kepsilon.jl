@@ -15,8 +15,8 @@ const ρ₀ = TEOS10EquationOfState().reference_density
 colors = Makie.wong_colors();
 
 # Directories for model results
-PHYSICALCLOSURE_DIR = joinpath(@__DIR__, "..", "figure_data", "oceananigans_column", "k_epsilon")  # Can also use CATKE results
-NN_DIR = joinpath(@__DIR__, "..", "figure_data", "oceananigans_column", "NORi")
+PHYSICALCLOSURE_DIR = joinpath(get_oceananigans_column_data_path(), "k_epsilon")  # Can also use CATKE results
+NN_DIR = joinpath(get_oceananigans_column_data_path(), "NORi")
 
 # Load LES data and scaling parameters
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")

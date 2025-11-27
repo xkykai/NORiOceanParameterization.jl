@@ -23,7 +23,7 @@ Ris = -0.5:0.001:1
 ##### Load inference results and datasets
 #####
 
-SOLS_DIR = joinpath(@__DIR__, "..", "figure_data", "ODE_inference", "baseclosure_results.jld2")
+SOLS_DIR = joinpath(get_ODE_inference_data_path(), "baseclosure_results.jld2")
 sols = jldopen(SOLS_DIR, "r")
 
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")

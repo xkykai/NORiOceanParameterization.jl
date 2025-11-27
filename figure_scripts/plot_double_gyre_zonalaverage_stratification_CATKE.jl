@@ -1,6 +1,7 @@
 # We activate a special environment for this script for compatibility reasons since the simulation was run with the specific versions
 using Pkg
 Pkg.activate(@__DIR__)
+include(joinpath(@__DIR__, "register_doublegyre_datadep.jl"))
 
 using CairoMakie
 using JLD2
@@ -27,7 +28,7 @@ years = 2.5
 # Uncomment this for 100 years data (shown in appendix of paper)
 # years = 100
 
-filepath = joinpath(@__DIR__, "..", "figure_data", "doublegyre", "zonal_average_stratification_CATKE_$(years)years.jld2")
+filepath = joinpath(get_doublegyre_data_path(), "zonal_average_stratification_CATKE_$(years)years.jld2")
 
 NN_field, physicalclosure_field, baseclosure_field, Δ_field, Δ_baseclosure_field, grid, times = jldopen(filepath, "r") do file
     return (file["NN_field"], file["physicalclosure_field"], file["baseclosure_field"], 

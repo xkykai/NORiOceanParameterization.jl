@@ -3,13 +3,14 @@ using JLD2
 using ComponentArrays
 using ColorSchemes
 using Makie
+using NORiOceanParameterization.DataWrangling
 
 #####
 ##### Load Data
 #####
 
 colors = Makie.wong_colors();
-SOLS_DIR = joinpath(@__DIR__, "..", "figure_data", "ODE_inference", "NN_results.jld2")
+SOLS_DIR = joinpath(get_ODE_inference_data_path(), "NN_results.jld2")
 
 casename = "windsandconvection_01"
 sol = jldopen(SOLS_DIR, "r")["training/$(casename)"]

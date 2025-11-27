@@ -1,9 +1,10 @@
 using JLD2
 using CairoMakie
 using Makie
+using NORiOceanParameterization.DataWrangling
 
 colors = Makie.wong_colors();
-FILE_DIR = joinpath(@__DIR__, "..", "figure_data", "losses")
+FILE_DIR = get_losses_data_path()
 
 #####
 ##### Load Training Losses

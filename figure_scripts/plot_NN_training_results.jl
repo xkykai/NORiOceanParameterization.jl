@@ -49,7 +49,7 @@ dataset = LESDatasets(field_datasets, scaling, full_timeframes)
 ##### Load inference results
 #####
 
-FILE_DIR = joinpath(pwd(), "figure_data", "ODE_inference", "NN_results.jld2")
+FILE_DIR = joinpath(get_ODE_inference_data_path(), "NN_results.jld2")
 results = jldopen(FILE_DIR, "r")
 
 #####
