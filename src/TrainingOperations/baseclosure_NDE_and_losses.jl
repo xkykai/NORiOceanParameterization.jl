@@ -312,6 +312,12 @@ function diagnose_fields(mode::BaseClosureMode, ps, params, x₀, train_data_plo
     Ss = inv(scaling.S).(sols.S)
     ρs = inv(scaling.ρ).(sols.ρ)
 
+    ∂u∂zs = hcat([params.Dᶠ * u for u in eachcol(us)]...)
+    ∂v∂zs = hcat([params.Dᶠ * v for v in eachcol(vs)]...)
+    ∂T∂zs = hcat([params.Dᶠ * T for T in eachcol(Ts)]...)
+    ∂S∂zs = hcat([params.Dᶠ * S for S in eachcol(Ss)]...)
+    ∂ρ∂zs = hcat([params.Dᶠ * ρ for ρ in eachcol(ρs)]...)
+
     eos = TEOS10EquationOfState()
     Ris_truth = hcat([calculate_Ri(u, v, ρ, Dᶠ, params.g, eos.reference_density, clamp_lims=(-Inf, Inf)) for (u, v, ρ) in zip(eachcol(train_data_plot.profile.u.unscaled), eachcol(train_data_plot.profile.v.unscaled), eachcol(train_data_plot.profile.ρ.unscaled))]...)
     Ris = hcat([calculate_Ri(u, v, ρ, Dᶠ, params.g, eos.reference_density, clamp_lims=(-Inf, Inf)) for (u, v, ρ) in zip(eachcol(us), eachcol(vs), eachcol(ρs))]...)
@@ -339,6 +345,6 @@ function diagnose_fields(mode::BaseClosureMode, ps, params, x₀, train_data_plo
 
     diffusivities = (; ν=νs, κ=κs, Ri=Ris, Ri_truth=Ris_truth)
 
-    sols_dimensional = (; u=us, v=vs, T=Ts, S=Ss, ρ=ρs)
+    sols_dimensional = (; u=us, v=vs, T=Ts, S=Ss, ρ=ρs, ∂u∂z=∂u∂zs, ∂v∂z=∂v∂zs, ∂T∂z=∂T∂zs, ∂S∂z=∂S∂zs, ∂ρ∂z=∂ρ∂zs)
     return (; sols_dimensional, fluxes, diffusivities)
 end
