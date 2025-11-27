@@ -36,7 +36,7 @@ data_path = joinpath(SOBLLES_path, "data")
 plot_cases = vcat(result_names, result_names_validation)
 field_datasets = [FieldDataset(joinpath(data_path, sim, "instantaneous_timeseries.jld2"), backend=OnDisk()) for sim in plot_cases]
 
-nn_model_path = joinpath(pwd(), "calibrated_parameters", "NNclosure_weights.jld2")
+nn_model_path = joinpath(@__DIR__, "..", "calibrated_parameters", "NNclosure_weights.jld2")
 scaling_params = jldopen(nn_model_path, "r") do file
     return file["scaling"]
 end

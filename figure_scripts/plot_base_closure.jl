@@ -12,7 +12,7 @@ using SeawaterPolynomials.TEOS10
 ##### Load calibrated parameters and setup
 #####
 
-ps_baseclosure = jldopen(joinpath(pwd(), "calibrated_parameters", "baseclosure_final.jld2"), "r")["u"]
+ps_baseclosure = jldopen(joinpath(@__DIR__, "..", "calibrated_parameters", "baseclosure_final.jld2"), "r")["u"]
 
 # Compute diffusivities as function of Richardson number
 Ris = -0.5:0.001:1
@@ -23,7 +23,7 @@ Ris = -0.5:0.001:1
 ##### Load inference results and datasets
 #####
 
-SOLS_DIR = joinpath(pwd(), "figure_data", "ODE_inference", "baseclosure_results.jld2")
+SOLS_DIR = joinpath(@__DIR__, "..", "figure_data", "ODE_inference", "baseclosure_results.jld2")
 sols = jldopen(SOLS_DIR, "r")
 
 SOBLLES_path = joinpath(get_SOBLLES_data_path(), "SOBLLES_jld2")

@@ -3,7 +3,7 @@ using CairoMakie
 using Makie
 
 colors = Makie.wong_colors();
-FILE_DIR = joinpath(pwd(), "figure_data", "losses")
+FILE_DIR = joinpath(@__DIR__, "..", "figure_data", "losses")
 
 #####
 ##### Load Training Losses

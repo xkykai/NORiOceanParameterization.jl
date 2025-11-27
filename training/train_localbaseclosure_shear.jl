@@ -114,7 +114,7 @@ ensemble_mean_loss = loss_multipleics(mode, ComponentArray(ν_conv=ps_fixed.ν_c
 
 ps_final_mean = ComponentArray(; ν_conv=ps_fixed.ν_conv, ν_shear=ensemble_mean[1], Riᶜ=ensemble_mean[2], Pr_conv=ps_fixed.Pr_conv, Pr_shear=ensemble_mean[3], ΔRi=ps_fixed.ΔRi)
 
-SAVE_DIR = joinpath(pwd(), "training_results", "localbaseclosure_shear")
+SAVE_DIR = joinpath(@__DIR__, "..", "training_results", "localbaseclosure_shear")
 RESULTS_DIR = joinpath(SAVE_DIR, "calibrated_parameters")
 PLOTS_DIR = joinpath(SAVE_DIR, "plots")
 

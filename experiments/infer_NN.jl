@@ -45,11 +45,11 @@ validation_timeframes = [25:length(data["ubar"].times) for data in validation_fi
 #####
 
 # Base closure (Ri-dependent diffusivity) parameters
-ps_baseclosure = jldopen(joinpath(pwd(), "calibrated_parameters", "baseclosure_final.jld2"), "r")["u"]
+ps_baseclosure = jldopen(joinpath(@__DIR__, "..", "calibrated_parameters", "baseclosure_final.jld2"), "r")["u"]
 Riᶜ = ps_baseclosure.Riᶜ
 
 # Neural network closure parameters and models
-nn_model_path = joinpath(pwd(), "calibrated_parameters", "NNclosure_weights.jld2")
+nn_model_path = joinpath(@__DIR__, "..", "calibrated_parameters", "NNclosure_weights.jld2")
 ps, sts, scaling_params, wT_model, wS_model = jldopen(nn_model_path, "r") do file
     return file["u"], file["sts"], file["scaling"], file["model"].wT, file["model"].wS
 end
@@ -96,7 +96,7 @@ validation_results = [diagnose_fields(mode, ps, param, x₀, ps_baseclosure,
 ##### Save Results
 #####
 
-SAVE_PATH = joinpath(pwd(), "figure_data")
+SAVE_PATH = joinpath(@__DIR__, "..", "figure_data")
 mkpath(SAVE_PATH)
 filepath = joinpath(SAVE_PATH, "NN_inference_results.jld2")
 

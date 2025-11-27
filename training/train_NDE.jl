@@ -24,14 +24,14 @@ seed = 20
 const NN_grid_points = 5
 
 # Create output directory
-FILE_DIR = joinpath(pwd(), "training_results", "NDE")
+FILE_DIR = joinpath(@__DIR__, "..", "training_results", "NDE")
 mkpath(FILE_DIR)
 
-WEIGHTS_DIR = joinpath(pwd(), "model_weights")
+WEIGHTS_DIR = joinpath(@__DIR__, "..", "model_weights")
 mkpath(WEIGHTS_DIR)
 
 # Load base closure parameters
-BASECLOSURE_FILE_DIR = joinpath(pwd(), "calibrated_parameters", "baseclosure_final.jld2")
+BASECLOSURE_FILE_DIR = joinpath(@__DIR__, "..", "calibrated_parameters", "baseclosure_final.jld2")
 ps_baseclosure = jldopen(BASECLOSURE_FILE_DIR, "r")["u"]
 
 const coarse_size = 32

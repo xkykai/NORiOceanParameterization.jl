@@ -9,7 +9,7 @@ using JLD2
 ##### Load Data
 #####
 
-filepath = joinpath(pwd(), "figure_data", "LES_3D_fields.jld2")
+filepath = joinpath(@__DIR__, "..", "figure_data", "LES_3D_fields.jld2")
 
 b_xy_convection, b_yz_convection, b_xz_convection, 
 b_xy_wind, b_yz_wind, b_xz_wind, 

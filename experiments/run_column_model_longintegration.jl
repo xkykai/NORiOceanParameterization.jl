@@ -90,7 +90,7 @@ function setup_model(closure)
     return model
 end
 
-function run_simulation(model, Δt, OUTPUT_PATH=joinpath(pwd(), "figure_data", "long_integration_results"))
+function run_simulation(model, Δt, OUTPUT_PATH=joinpath(@__DIR__, "..", "figure_data", "long_integration_results"))
     stop_time = 60days
     simulation = Simulation(model, Δt = Δt, stop_time = stop_time)
 

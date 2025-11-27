@@ -29,7 +29,7 @@ grid = RectilinearGrid(model_architecture,
                        halo = 3,
                        z = (-Lz, 0))
 
-OUTPUT_DIR = joinpath(pwd(), "figure_data", "NN_inference_results")
+OUTPUT_DIR = joinpath(@__DIR__, "..", "figure_data", "NN_inference_results")
 
 #####
 ##### Run NN model simulation

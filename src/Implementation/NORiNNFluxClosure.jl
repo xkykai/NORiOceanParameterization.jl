@@ -144,7 +144,7 @@ function NORiNNFluxClosure(arch; model_path=nothing)
 
     # Default model path - update this to use different trained models
     if isnothing(model_path)
-        model_path = joinpath(pwd(), "calibrated_parameters", "NNclosure_weights.jld2")
+        model_path = joinpath(@__DIR__, "..", "..", "calibrated_parameters", "NNclosure_weights.jld2")
     end
 
     # Load trained model parameters

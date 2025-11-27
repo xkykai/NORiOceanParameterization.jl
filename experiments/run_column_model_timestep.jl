@@ -133,7 +133,7 @@ function run_simulation(model, Δt, OUTPUT_PATH)
     run!(simulation)
 end
 
-OUTPUT_PATH = joinpath(pwd(), "figure_data", "timestep_results")
+OUTPUT_PATH = joinpath(@__DIR__, "..", "figure_data", "timestep_results")
 mkpath(OUTPUT_PATH)
 
 setup_and_run_simulation(closure, Δt) = run_simulation(setup_model(closure), Δt, OUTPUT_PATH)

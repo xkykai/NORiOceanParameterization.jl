@@ -51,7 +51,7 @@ params = ODEParams(training_data)
 rng = Random.default_rng(123)
 
 # Load the optimal shear parameters from the shear training results
-PS_PRIOR_DIR = joinpath(pwd(), "calibrated_parameters", "baseclosure_shear.jld2")
+PS_PRIOR_DIR = joinpath(@__DIR__, "..", "calibrated_parameters", "baseclosure_shear.jld2")
 ps = jldopen(PS_PRIOR_DIR, "r")["u"]
 
 ps_prior = ps
@@ -115,7 +115,7 @@ ensemble_mean_loss = loss_multipleics(mode, ComponentArray(ν_conv=ensemble_mean
 
 ps_final_mean = ComponentArray(; ν_conv=ensemble_mean[1], ν_shear=ps_fixed.ν_shear, Riᶜ=ps_fixed.Riᶜ, Pr_conv=ensemble_mean[2], Pr_shear=ps_fixed.Pr_shear, ΔRi=ensemble_mean[3])
 
-SAVE_DIR = joinpath(pwd(), "training_results", "localbaseclosure_convection")
+SAVE_DIR = joinpath(@__DIR__, "..", "training_results", "localbaseclosure_convection")
 RESULTS_DIR = joinpath(SAVE_DIR, "calibrated_parameters")
 PLOTS_DIR = joinpath(SAVE_DIR, "animations")
 
