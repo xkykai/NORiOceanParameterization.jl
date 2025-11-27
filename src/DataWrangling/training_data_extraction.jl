@@ -2,29 +2,6 @@ using DataDeps
 using JSON
 
 """
-Register and download LES dataset from Zenodo using DataDeps.
-"""
-function __init__()
-    register(DataDep(
-        "SOBLLES",
-        """
-        A Salty Ocean Boundary Layer Large-Eddy Simulations Dataset
-        """,
-        "https://zenodo.org/api/records/17677802/files/SOBLLES_jld2.tar/content",
-        post_fetch_method = unpack
-    ))
-end
-
-"""
-    get_SOBLLES_data_path()
-
-Get the path to the downloaded LES data. Downloads automatically if not present.
-"""
-function get_SOBLLES_data_path()
-    return datadep"SOBLLES"
-end
-
-"""
     load_dataset_split(filepath::String)
 
 Load and parse a dataset split JSON file.

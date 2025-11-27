@@ -85,7 +85,7 @@ function __init__()
 end
 
 get_SOBLLES_data_path() = datadep"SOBLLES"
-get_LES_3D_fields_data_path() = datadep"LES_3D_fields"
+get_LES_3D_fields_data_path() = joinpath(datadep"LES_3D_fields", "LES_3D_fields.jld2")
 get_losses_data_path() = joinpath(datadep"losses", "losses")
 get_ODE_inference_data_path() = joinpath(datadep"ODE_inference", "ODE_inference")
 get_oceananigans_column_data_path() = joinpath(datadep"oceananigans_column", "oceananigans_column")
