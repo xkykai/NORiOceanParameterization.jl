@@ -168,7 +168,7 @@ with_theme(theme_latexfonts()) do
     ##### Plot LES reference solutions
     #####
     
-    lines!(axT1, dataset.data[1].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth, label="Large eddy simulation")
+    lines!(axT1, dataset.data[1].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth, label="Large-eddy simulation")
     lines!(axT2, dataset.data[2].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
     lines!(axT3, dataset.data[3].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)
     lines!(axT4, dataset.data[4].profile.T.unscaled[:, timeframe], zC, color=LES_color, linewidth=LES_linewidth)

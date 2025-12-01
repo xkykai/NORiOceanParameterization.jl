@@ -88,11 +88,11 @@ with_theme(theme_latexfonts()) do
     #####
     
     lines!(axu, interior(ubar_data_LES[Nt], 1, 1, :), zC_LES, 
-           color=(colors[3], 0.5), label="Large eddy simulation", linewidth=12)
+           color=(colors[3], 0.5), label="Large-eddy simulation", linewidth=12)
     lines!(axT, interior(Tbar_data_LES[Nt], 1, 1, :), zC_LES, 
-           color=(colors[3], 0.5), label="Large eddy simulation", linewidth=12)
+           color=(colors[3], 0.5), label="Large-eddy simulation", linewidth=12)
     lines!(axS, interior(Sbar_data_LES[Nt], 1, 1, :), zC_LES, 
-           color=(colors[3], 0.5), label="Large eddy simulation", linewidth=12)
+           color=(colors[3], 0.5), label="Large-eddy simulation", linewidth=12)
 
     #####
     ##### Plot model results for each timestep
@@ -127,5 +127,5 @@ with_theme(theme_latexfonts()) do
     hidespines!(axS, :t, :r)
 
     display(fig)
-    # save("./figures/$(dir_type)_timesteps_LES_1D.pdf", fig)
+#     save("./figures/$(dir_type)_timesteps_LES_1D.pdf", fig)
 end
