@@ -17,7 +17,50 @@ NORiOceanParameterization.jl provides hybrid ocean parameterizations that:
 - **Apply neural networks** to learn entrainment processes during convection, acting as a residual flux
 - **Provide an end-to-end training framework** using fully differentiable-(Neural ODEs) and ensemble-based (Ensemble Kalman Inversion) methods
 - **Provide calibrated closures** trained on large-eddy simulations (LES) generated with Oceananigans
-- **Integrate seamlessly with Oceananigans.jl** for use in ocean simulations
+- **Integrate seamlessly with Oceananigans.jl** for use in ocean simulations on CPUs and GPUs
+
+## Repository Structure
+
+The repository is organized into several directories:
+
+### Core Implementation
+- **[`src/`](src/)**: Core package source code
+  - `Closures/`: Closure implementations (base Richardson number closure)
+  - `Implementation/`: Oceananigans.jl integration and convenience functions
+  - `DataWrangling/`: Tools for loading and processing data
+  - `ODEOperations/`: ODE solvers and operations used during training and inference
+  - `Operators/`: Differential operators for the parameterizations
+  - `TrainingOperations/`: Training utilities, neural differential equation and loss function definition
+  - `Plotting/`: Visualization utilities
+  - `Utils/`: General utility functions
+
+### Pre-Trained Models
+- **[`calibrated_parameters/`](calibrated_parameters/)**: Pre-trained parameters for base Richardson number closure and final neural network weights
+
+### Training and Validation
+- **[`training/`](training/)**: Complete training pipeline scripts
+  - `run_LES_boundary_layer.jl`: Generate LES training data with Oceananigans.jl
+  - `train_NDE.jl`: Neural Differential Equations training for NN closure
+  - `train_localbaseclosure_convection.jl`: EKI calibration for convective regime of the base closure
+  - `train_localbaseclosure_shear.jl`: EKI calibration for shear regime of the base closure
+
+### Inference and Examples
+- **[`inference/`](inference/)**: Example scripts for using NORi closures in Oceananigans models
+  - `column_model_nori_closures_example.jl`: 1D column model example
+  - `doublegyre_nori_closures_example.jl`: 3D double-gyre circulation example
+
+- **[`experiments/`](experiments/)**: Validation and benchmark experiments
+  - Column model simulations comparing NORi against LES, CATKE, and k-epsilon closures
+  - Scripts for timestep dependence studies and long integration tests
+
+### Visualization
+- **[`figure_scripts/`](figure_scripts/)**: Scripts to generate all publication figures
+  - Training results visualization (NDE losses, training metrics)
+  - Validation plots comparing NORi against LES, CATKE, and k-epsilon closures
+  - 3D LES field visualizations
+  - Double-gyre circulation analysis plots
+  - Data required to plot the figures are hosted on this [Zenodo data companion](https://doi.org/10.5281/zenodo.17605195)
+  - Data loading from Zenodo is handled automatically with DataDeps.jl
 
 ## Key Features
 
@@ -44,7 +87,7 @@ NORi is specifically trained on and designed for the nonlinear equation of state
 The repository includes a full training infrastructure:
 - **Neural Differential Equations (NDEs)** for fully-differentiable neural network calibration over ODE solvers
 - **Ensemble Kalman Inversion (EKI)** for base closure calibration 
-- **Free and Open Source** training dataset [SOBLLES](https://doi.org/10.5281/zenodo.16278000): Salty Ocean Boundary Layer Large-Eddy Simulations covering a wide range of realistic ocean scenarios
+- **Free and Open Source** training dataset [SOBLLES: Salty Ocean Boundary Layer Large-Eddy Simulations](https://doi.org/10.5281/zenodo.16278000) covering a wide range of realistic ocean scenarios
 - Cutting-edge automatic differentiation via [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl)
 - Highly efficient gradient-free methods using [EnsembleKalmanProcesses.jl](https://github.com/CliMA/EnsembleKalmanProcesses.jl)
 - Multi-initial condition training with adaptive loss weighting
@@ -104,7 +147,7 @@ run!(simulation)
 
 ## Training Your Own Closures
 
-See training scripts in [`training`](training) for details!
+See training scripts in [`training/`](training/) for complete training pipeline examples!
 
 <!-- ## Citation
 
