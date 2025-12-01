@@ -2,6 +2,7 @@
 
 [![Julia](https://img.shields.io/badge/julia-v1.10+-blue.svg)](https://julialang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/1092643359.svg)](https://doi.org/10.5281/zenodo.17773380)
 
 **Neural ODEs ("NO") and Richardson Number ("Ri")-Based Ocean Parameterization**
 
