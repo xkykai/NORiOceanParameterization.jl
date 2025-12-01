@@ -9,14 +9,6 @@ A ML-augmented ocean turbulence parameterization that combines physics-based Ric
 
 Trained entirely end-to-end (_a posteriori_) with fully-differentiable ODE solvers and Ensemble Kalman Inversion.
 
-<!-- ![Large-eddy simulation of convection over stratified fluid](media/convection.gif) -->
-
-<p align="center">
-  <img src="media/convection.gif" alt="Large-eddy simulation of convection over stratified fluid" width=400">
-  <br>
-  <em>Large-eddy simulation (LES) of convection over stratified fluid.</em>
-</p>
-
 ## Overview
 
 NORiOceanParameterization.jl provides hybrid ocean parameterizations that:
