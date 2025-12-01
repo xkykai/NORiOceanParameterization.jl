@@ -149,13 +149,13 @@ with_theme(theme_latexfonts()) do
                color=colors[4], linestyle=(:dash, :dense), linewidth=initial_linewidth)
 
         # LES results
-        lines!(axuv, dataset.data[i].profile.u.unscaled[:, frame], zC, label="u (Large eddy simulation)", 
+        lines!(axuv, dataset.data[i].profile.u.unscaled[:, frame], zC, label="u (Large-eddy simulation)", 
                color=(colors[1], 0.5), linewidth=LES_linewidth)
-        lines!(axuv, dataset.data[i].profile.v.unscaled[:, frame], zC, label="v (Large eddy simulation)", 
+        lines!(axuv, dataset.data[i].profile.v.unscaled[:, frame], zC, label="v (Large-eddy simulation)", 
                color=(colors[2], 0.5), linewidth=LES_linewidth)
-        lines!(axT, dataset.data[i].profile.T.unscaled[:, frame], zC, label="Large eddy simulation", 
+        lines!(axT, dataset.data[i].profile.T.unscaled[:, frame], zC, label="Large-eddy simulation", 
                color=(colors[3], 0.5), linewidth=LES_linewidth)
-        lines!(axS, dataset.data[i].profile.S.unscaled[:, frame], zC, label="Large eddy simulation", 
+        lines!(axS, dataset.data[i].profile.S.unscaled[:, frame], zC, label="Large-eddy simulation", 
                color=(colors[3], 0.5), linewidth=LES_linewidth)
         lines!(axσ, b_LES, zC, label="LES", color=(colors[3], 0.5), linewidth=LES_linewidth)
 
