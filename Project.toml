@@ -1,7 +1,7 @@
 name = "NORiOceanParameterization"
 uuid = "387c5e47-b07a-4683-ad32-7ad5f2efffec"
 authors = ["Xin Kai Lee <me@xinkailee.com>"]
-version = "1.0.0-DEV"
+version = "0.1.0-DEV"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
