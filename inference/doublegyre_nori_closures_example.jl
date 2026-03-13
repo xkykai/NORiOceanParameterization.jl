@@ -9,6 +9,12 @@
 # 2. NORiNNFluxClosure must be second (immediately after base)
 # 3. Use helper functions to ensure correct ordering
 
+using Pkg
+Pkg.activate(joinpath(@__DIR__, "..", "NORiImplementation"))
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Oceananigans
 using Oceananigans.Units
 using Oceananigans.OutputReaders: FieldTimeSeries
@@ -19,8 +25,8 @@ using Printf
 using Statistics
 import Dates
 
-# Import NORi closures from Implementation module
-using NORiOceanParameterization.Implementation
+# Import NORi closures
+using NORiImplementation
 
 #####
 ##### Simulation setup

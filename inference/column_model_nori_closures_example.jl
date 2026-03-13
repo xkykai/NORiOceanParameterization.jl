@@ -1,3 +1,9 @@
+using Pkg
+Pkg.activate(joinpath(@__DIR__, "..", "NORiImplementation"))
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Oceananigans
 using Oceananigans.Units
 using Oceananigans.OutputReaders: FieldTimeSeries
@@ -10,8 +16,8 @@ using Printf
 using Statistics
 using JLD2
 
-# Import NORi closures from Implementation module
-using NORiOceanParameterization.Implementation
+# Import NORi closures
+using NORiImplementation
 
 #####
 ##### Load validation data
@@ -114,11 +120,12 @@ end
 
 @info "Building model with NORi closures..."
 
-model = HydrostaticFreeSurfaceModel(
-    grid = grid,
+model = HydrostaticFreeSurfaceModel(grid;
     free_surface = ImplicitFreeSurface(),
-    momentum_advection = WENO(grid = grid),
-    tracer_advection = WENO(grid = grid),
+    # momentum_advection = WENO(grid = grid),
+    # tracer_advection = WENO(grid = grid),
+    momentum_advection = WENO(),
+    tracer_advection = WENO(),
     buoyancy = SeawaterBuoyancy(equation_of_state = TEOS10.TEOS10EquationOfState()),
     coriolis = coriolis,
     closure = closures,  # NORi closures in correct order
@@ -176,19 +183,19 @@ T, S = model.tracers.T, model.tracers.S
 
 if closures isa Tuple && length(closures) >= 2
     # With both base and NN closures
-    Ri = model.diffusivity_fields[1].Ri     # Richardson number from base closure
-    ν = model.diffusivity_fields[1].κᵘ      # Viscosity from base closure
-    κ = model.diffusivity_fields[1].κᶜ      # Diffusivity from base closure
+    Ri = model.closure_fields[1].Ri     # Richardson number from base closure
+    ν = model.closure_fields[1].κᵘ      # Viscosity from base closure
+    κ = model.closure_fields[1].κᶜ      # Diffusivity from base closure
 
-    wT_residual = model.diffusivity_fields[2].wT  # Temperature flux from NN
-    wS_residual = model.diffusivity_fields[2].wS  # Salinity flux from NN
+    wT_residual = model.closure_fields[2].wT  # Temperature flux from NN
+    wS_residual = model.closure_fields[2].wS  # Salinity flux from NN
 
     @info "Diagnostics: Base closure (Ri, ν, κ) + NN closure (wT_residual, wS_residual)"
 else
     # Only base closure (no NN)
-    Ri = model.diffusivity_fields.Ri
-    ν = model.diffusivity_fields.κᵘ
-    κ = model.diffusivity_fields.κᶜ
+    Ri = model.closure_fields.Ri
+    ν = model.closure_fields.κᵘ
+    κ = model.closure_fields.κᶜ
 
     # No residual fluxes without NN
     wT_residual = nothing
@@ -216,7 +223,7 @@ end
 
 output_filename = "nori_column_model_instantaneous_fields"
 
-simulation.output_writers[:jld2] = JLD2OutputWriter(model, averaged_outputs,
+simulation.output_writers[:jld2] = JLD2Writer(model, averaged_outputs,
     filename = joinpath(pwd(), output_filename),
     schedule = TimeInterval(30minutes),
     overwrite_existing = true)
@@ -242,7 +249,6 @@ end
 #####
 
 # Uncomment the following section to generate comparison plots
-
 # using CairoMakie
 
 # @info "Loading output data for visualization..."

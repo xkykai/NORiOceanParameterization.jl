@@ -24,7 +24,7 @@ shear-driven (Ri > 0) regimes.
 
 # Usage
 ```julia
-using NORiOceanParameterization.Implementation
+using NORiImplementation
 
 # Create closure with default parameters (trained values)
 base_closure = NORiBaseVerticalDiffusivity()
@@ -58,7 +58,7 @@ model = HydrostaticFreeSurfaceModel(
 using Oceananigans
 using Oceananigans.Architectures: architecture
 using Oceananigans.BoundaryConditions: fill_halo_regions!
-using Oceananigans.BuoyancyModels: ∂x_b, ∂y_b, ∂z_b
+using Oceananigans.BuoyancyFormulations: ∂x_b, ∂y_b, ∂z_b
 using Oceananigans.Grids: inactive_node, total_size
 using Oceananigans.Operators
 using Oceananigans.Operators: ℑxyᶠᶠᵃ, ℑxyᶜᶜᵃ, ℑxᶜᵃᵃ, ℑyᵃᶜᵃ, ∂zᶠᶜᶠ, ∂zᶜᶠᶠ
@@ -70,10 +70,11 @@ using Oceananigans.TurbulenceClosures:
     getclosure
 
 # Import (not using) functions we will extend
-import Oceananigans.TurbulenceClosures: viscosity, diffusivity, compute_diffusivities!, DiffusivityFields
+import Oceananigans.TurbulenceClosures: viscosity, diffusivity, compute_diffusivities!, build_closure_fields
 using Oceananigans.Utils: KernelParameters, launch!, prettysummary
 
 using Adapt
+using JLD2
 using KernelAbstractions: @index, @kernel
 
 #####
@@ -173,24 +174,16 @@ function NORiBaseVerticalDiffusivity(time_discretization = VerticallyImplicitTim
     # Otherwise use the default kwargs
     if !isnothing(parameter_file) && isfile(parameter_file)
         @info "Loading NORi base closure parameters from file: $parameter_file"
-        params = jldopen(parameter_file, "r") do file
-            if haskey(file, "u")
-                # Load complete parameter set from training results
-                u = file["u"]
-                (
-                    ν₀        = ν₀,  # ν₀ not trained, use default
-                    νˢʰ       = u.ν_shear,
-                    νᶜⁿ       = u.ν_conv,
-                    Pr_convₜ  = u.Pr_conv,
-                    Pr_shearₜ = u.Pr_shear,
-                    Riᶜ       = u.Riᶜ,
-                    δRi       = u.ΔRi
-                )
-            else
-                # No "u" key - use default kwargs
-                (ν₀=ν₀, νˢʰ=νˢʰ, νᶜⁿ=νᶜⁿ, Pr_convₜ=Pr_convₜ, Pr_shearₜ=Pr_shearₜ, Riᶜ=Riᶜ, δRi=δRi)
-            end
-        end
+        u = load_baseclosure_params(parameter_file)
+        params = (
+            ν₀        = ν₀,  # ν₀ not trained, use default
+            νˢʰ       = u.ν_shear,
+            νᶜⁿ       = u.ν_conv,
+            Pr_convₜ  = u.Pr_conv,
+            Pr_shearₜ = u.Pr_shear,
+            Riᶜ       = u.Riᶜ,
+            δRi       = u.ΔRi
+        )
     elseif !isnothing(parameter_file)
         @warn "Parameter file not found: $parameter_file. Using default parameters."
         params = (ν₀=ν₀, νˢʰ=νˢʰ, νᶜⁿ=νᶜⁿ, Pr_convₜ=Pr_convₜ, Pr_shearₜ=Pr_shearₜ, Riᶜ=Riᶜ, δRi=δRi)
@@ -235,7 +228,7 @@ const f = Face()
 with_tracers(tracers, closure::FlavorOfNBVD) = closure
 
 """
-    DiffusivityFields(grid, tracer_names, bcs, closure::NORiBaseVerticalDiffusivity)
+    build_closure_fields(grid, tracer_names, bcs, closure::NORiBaseVerticalDiffusivity)
 
 Create diffusivity fields for the NORi base closure.
 
@@ -244,10 +237,10 @@ Returns a NamedTuple with:
 - `κᵘ`: Momentum diffusivity (viscosity) field
 - `Ri`: Richardson number field
 """
-function DiffusivityFields(grid, tracer_names, bcs, closure::FlavorOfNBVD)
-    κᶜ = Field((Center, Center, Face), grid)
-    κᵘ = Field((Center, Center, Face), grid)
-    Ri = Field((Center, Center, Face), grid)
+function build_closure_fields(grid, clock, tracer_names, bcs, closure::FlavorOfNBVD)
+    κᶜ = Field((Center(), Center(), Face()), grid)
+    κᵘ = Field((Center(), Center(), Face()), grid)
+    Ri = Field((Center(), Center(), Face()), grid)
     return (; κᶜ, κᵘ, Ri)
 end
 

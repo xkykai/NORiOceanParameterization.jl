@@ -1,0 +1,22 @@
+name = "NORiImplementation"
+uuid = "a8e99680-09e7-4c83-aed7-d8a49e482270"
+
+[deps]
+Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
+ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
+LuxCUDA = "d0bbae9a-e099-4d5b-a835-1c6931763bda"
+NNlib = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
+NORiOceanParameterization = "387c5e47-b07a-4683-ad32-7ad5f2efffec"
+NumericalEarth = "904d977b-046a-4731-8b86-9235c0d1ef02"
+Oceananigans = "9e8cae18-63c1-5223-a75c-80ca9d6e9a09"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SeawaterPolynomials = "d496a93d-167e-4197-9f49-d3af4ff8fe40"
+
+[compat]
+Lux = "1"
+Oceananigans = "0.104"
+julia = "1.10"

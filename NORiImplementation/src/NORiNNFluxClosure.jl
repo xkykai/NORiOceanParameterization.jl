@@ -16,7 +16,7 @@ and Richardson number profiles.
 
 # Usage
 ```julia
-using NORiOceanParameterization.Implementation
+using NORiImplementation
 
 # Create closure (automatically loads trained model and scaling parameters)
 nn_closure = NORiNNFluxClosure(GPU())  # or CPU()
@@ -38,7 +38,8 @@ to use different trained models.
 
 import Oceananigans.TurbulenceClosures:
         compute_diffusivities!,
-        DiffusivityFields,
+        build_closure_fields,
+        fill_halo_regions!,
         viscosity,
         diffusivity,
         diffusive_flux_x,
@@ -54,7 +55,7 @@ import Oceananigans.TurbulenceClosures:
         viscous_flux_wy,
         viscous_flux_wz
 
-using Oceananigans.BuoyancyModels: ∂x_b, ∂y_b, ∂z_b, g_Earth, top_buoyancy_flux
+using Oceananigans.BuoyancyFormulations: ∂x_b, ∂y_b, ∂z_b, top_buoyancy_flux
 using Oceananigans.Coriolis
 using Oceananigans.Grids: φnode, total_size
 using Oceananigans.Utils: KernelParameters, launch!
@@ -69,11 +70,13 @@ using SeawaterPolynomials.TEOS10
 
 using KernelAbstractions: @index, @kernel, @private
 
+const g_Earth = Oceananigans.defaults.gravitational_acceleration
+
 import Oceananigans.TurbulenceClosures: AbstractTurbulenceClosure, ExplicitTimeDiscretization
 
 using Adapt
 
-include("../DataWrangling/feature_scaling.jl")
+# construct_zeromeanunitvariance_scaling and load_nn_weights imported at module level
 
 @inline hack_sind(φ) = sin(φ * π / 180)
 
@@ -147,22 +150,15 @@ function NORiNNFluxClosure(arch; model_path=nothing)
         model_path = joinpath(@__DIR__, "..", "..", "calibrated_parameters", "NNclosure_weights.jld2")
     end
 
-    # Load trained model parameters
-    ps, sts, scaling_params, wT_model, wS_model = jldopen(model_path, "r") do file
-        ps = file["u"] |> dev |> f64
-        sts = file["sts"] |> dev |> f64
-        scaling_params = file["scaling"]
-        wT_model = file["model"].wT
-        wS_model = file["model"].wS
-        return ps, sts, scaling_params, wT_model, wS_model
-    end
+    # Load trained model parameters (supports both legacy and version-agnostic formats)
+    ps, sts, scaling_params, wT_model, wS_model = load_nn_weights(model_path, dev)
 
     # Construct scaling transformation
     scaling = construct_zeromeanunitvariance_scaling(scaling_params)
 
     # Create neural network wrappers
-    wT_NN = NN(wT_model, ps.wT, sts.wT)
-    wS_NN = NN(wS_model, ps.wS, sts.wS)
+    wT_NN = NN(wT_model, _componentarray_to_namedtuple(ps.wT), sts.wT)
+    wS_NN = NN(wS_model, _componentarray_to_namedtuple(ps.wS), sts.wS)
 
     # Vertical extent of NN active region around Richardson number threshold
     grid_point_above = 10
@@ -172,16 +168,16 @@ function NORiNNFluxClosure(arch; model_path=nothing)
 end
 
 """
-    DiffusivityFields(grid, tracer_names, bcs, closure::NORiNNFluxClosure)
+    build_closure_fields(grid, clock, tracer_names, bcs, closure::NORiNNFluxClosure)
 
 Create work arrays and fields for neural network flux computation.
 """
-function DiffusivityFields(grid, tracer_names, bcs, closure::NORiNNFluxClosure)
+function build_closure_fields(grid, clock, tracer_names, bcs, closure::NORiNNFluxClosure)
     arch = architecture(grid)
     wT = ZFaceField(grid)
     wS = ZFaceField(grid)
-    first_index = Field((Center, Center, Nothing), grid, Int32)
-    last_index = Field((Center, Center, Nothing), grid, Int32)
+    first_index = Field((Center(), Center(), nothing), grid, Int32)
+    last_index = Field((Center(), Center(), nothing), grid, Int32)
 
     N_input = closure.wT.model.layers.layer_1.in_dims
     N_levels = closure.grid_point_above + closure.grid_point_below
@@ -221,7 +217,7 @@ function compute_diffusivities!(diffusivities, closure::NORiNNFluxClosure, model
 
     # Get Richardson number from base closure
     Riᶜ = model.closure[1].Riᶜ
-    Ri = model.diffusivity_fields[1].Ri
+    Ri = model.closure_fields[1].Ri
 
     wrk_in = diffusivities.wrk_in
     wrk_wT = diffusivities.wrk_wT
@@ -550,4 +546,28 @@ function Base.show(io::IO, closure::NORiNNFluxClosure)
             print(io, "    └── layer ", idx, ": ", in_dim, " → ", out_dim, " (", activation, ")", '\n')
         end
     end
+end
+
+"""Recursively convert a ComponentArray to a nested NamedTuple of plain Arrays."""
+function _componentarray_to_namedtuple(ca)
+    pairs = []
+    for key in propertynames(ca)
+        val = getproperty(ca, key)
+        if val isa ComponentArrays.ComponentArray
+            push!(pairs, key => _componentarray_to_namedtuple(val))
+        else
+            push!(pairs, key => Array(val))
+        end
+    end
+    return NamedTuple(pairs)
+end
+
+# Custom fill_halo_regions! for NORiNNFluxClosure's closure fields.
+# Only fill halos for actual Field objects; skip plain work arrays.
+const NORiNNClosureFields = NamedTuple{(:wrk_in, :wrk_wT, :wrk_wS, :wT, :wS, :first_index, :last_index)}
+
+function fill_halo_regions!(fields::NORiNNClosureFields, args...; kwargs...)
+    fill_halo_regions!(fields.wT, args...; kwargs...)
+    fill_halo_regions!(fields.wS, args...; kwargs...)
+    return nothing
 end

@@ -24,16 +24,22 @@ NORiOceanParameterization.jl provides hybrid ocean parameterizations that:
 
 The repository is organized into several directories:
 
-### Core Implementation
-- **[`src/`](src/)**: Core package source code
-  - `Closures/`: Closure implementations (base Richardson number closure)
-  - `Implementation/`: Oceananigans.jl integration and convenience functions
-  - `DataWrangling/`: Tools for loading and processing data
-  - `ODEOperations/`: ODE solvers and operations used during training and inference
+### Core Package
+- **[`src/`](src/)**: Core package source code for training and data processing
+  - `Closures/`: Base closure implementations used during training
+  - `DataWrangling/`: Tools for loading and processing LES data
+  - `ODEOperations/`: ODE solvers and operations used during training
   - `Operators/`: Differential operators for the parameterizations
   - `TrainingOperations/`: Training utilities, neural differential equation and loss function definition
   - `Plotting/`: Visualization utilities
-  - `Utils/`: General utility functions
+  - `Utils/`: Model I/O utilities (saving/loading NN weights and parameters)
+
+### Inference Package
+- **[`NORiImplementation/`](NORiImplementation/)**: Standalone package for using trained closures in Oceananigans
+  - `src/NORiBaseVerticalDiffusivity.jl`: Richardson number-based vertical diffusivity closure
+  - `src/NORiNNFluxClosure.jl`: Neural network closure for residual flux corrections
+  - `src/closure_builder.jl`: Helper functions for combining closures correctly
+  - Uses latest Oceananigans (v0.104+) and Lux (v1.x)
 
 ### Pre-Trained Models
 - **[`calibrated_parameters/`](calibrated_parameters/)**: Pre-trained parameters for base Richardson number closure and final neural network weights
@@ -44,6 +50,7 @@ The repository is organized into several directories:
   - `train_NDE.jl`: Neural Differential Equations training for NN closure
   - `train_localbaseclosure_convection.jl`: EKI calibration for convective regime of the base closure
   - `train_localbaseclosure_shear.jl`: EKI calibration for shear regime of the base closure
+  - Pins old dependencies (Enzyme v0.11.20, Lux v0.5.31) for compatibility
 
 ### Inference and Examples
 - **[`inference/`](inference/)**: Example scripts for using NORi closures in Oceananigans models
@@ -95,21 +102,38 @@ The repository includes a full training infrastructure:
 
 ## Important Caveats (for now!)
 ### Package Compatibility
-Due to rapid software development cycles with potentially breaking changes, we require
-- Julia 1.10
-- Enzyme v0.11.20
-- Lux v0.5.13
+
+This repository is organized into separate environments to handle conflicting dependency versions:
+
+- **`NORiImplementation/`** — For running pre-trained closures in Oceananigans (uses latest Lux and Oceananigans v0.104+)
+- **`training/`** — For training new closures (pins Enzyme v0.11.20 and Lux v0.5.31)
 
 Using other versions may lead to potential software issues, especially for the end-to-end training with Enzyme `autodiff`.
 
 ### Using NORi in production
-NORi can be readily used in the `HydrostaticFreeSurfaceModel` Oceananigans. Details and examples can be found in the [`src/Implementation`](src/Implementation) and [`inference`](inference) directories. However, it currently only supports a grid with uniform vertical spacing of ` Δz = 8 m`. Support for nonuniform grids in the vertical will be coming soon!
+NORi can be readily used in the `HydrostaticFreeSurfaceModel` in Oceananigans. Details and examples can be found in the [`NORiImplementation/`](NORiImplementation) and [`inference/`](inference) directories. However, it currently only supports a grid with uniform vertical spacing of `Δz = 8 m`. Support for nonuniform grids in the vertical will be coming soon!
 
 ## Installation
 
-```julia
-using Pkg
-Pkg.add(url="https://github.com/xkykai/NORiOceanParameterization.jl")
+### For inference (using pre-trained closures)
+
+From the repository root:
+```bash
+julia --project=NORiImplementation -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+```
+
+### For training
+
+The training scripts auto-bootstrap the environment on first run. From the repository root:
+
+```bash
+julia training/train_NDE.jl
+```
+
+Or set up manually:
+
+```bash
+julia --project=training -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 ```
 
 ## Quick Start
@@ -117,17 +141,16 @@ Pkg.add(url="https://github.com/xkykai/NORiOceanParameterization.jl")
 ### Using Pre-Trained Closures
 
 ```julia
-using NORiOceanParameterization.Implementation
+using NORiImplementation
 using Oceananigans
 using Oceananigans.Units
 
-model_architecture = CPU()
-# To use GPUs, uncomment the following instead:
-# using CUDA
-# model_architecture = CPU()
-
 # Create closures with trained parameters (automatically loaded)
-closures = NORiClosureWithNN(arch=model_architecture)
+closures = NORiClosureWithNN()  # For CPU
+
+# For GPU, use:
+# using CUDA
+# closures = NORiClosureWithNN(arch=GPU())
 
 # Set up a simple ocean column
 grid = RectilinearGrid(size = (32, 32, 32),
@@ -148,7 +171,15 @@ run!(simulation)
 
 ## Training Your Own Closures
 
-See training scripts in [`training/`](training/) for complete training pipeline examples!
+Training scripts live in [`training/`](training/) and use a separate environment with pinned dependency versions (Enzyme v0.11.20, Lux v0.5.31). Each script auto-activates this environment and dev-installs the core package on first run.
+
+```bash
+# Run NDE training
+julia training/train_NDE.jl
+
+# Or run with explicit project activation
+julia --project=training training/train_NDE.jl
+```
 
 <!-- ## Citation
 

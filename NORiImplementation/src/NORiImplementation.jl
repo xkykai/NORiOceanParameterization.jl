@@ -1,6 +1,9 @@
-module Implementation
+module NORiImplementation
 
-export 
+using NORiOceanParameterization.Utils: load_nn_weights, load_baseclosure_params
+using NORiOceanParameterization.DataWrangling: construct_zeromeanunitvariance_scaling
+
+export
     NORiBaseVerticalDiffusivity, NORiNNFluxClosure,
     NORiClosureTuple, NORiBaseClosureOnly, NORiClosureWithNN
 

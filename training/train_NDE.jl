@@ -1,4 +1,12 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using NORiOceanParameterization
+using NORiOceanParameterization.Utils: save_nn_weights, make_model_config
 using LinearAlgebra
 using Lux, ComponentArrays, Random
 using Printf
@@ -120,6 +128,15 @@ ps = ComponentArray(; wT=ps_wT, wS=ps_wS)  # Combined parameters
 NNs = (wT=wT_NN, wS=wS_NN)  # NN models
 sts = (wT=st_wT, wS=st_wS)  # NN states
 
+# Model config for version-agnostic saving (no Lux types serialized)
+nn_model_config = make_model_config(
+    input_size        = 4NN_grid_points + 1,
+    hidden_layer_size = hidden_layer_size,
+    n_hidden_layers   = N_hidden_layer,
+    output_size       = 1,
+    activation        = activation,
+)
+
 # Initial conditions for NDE solver (first timestep of each simulation)
 xâ‚€s = [(; u = data.profile.u.scaled[:, 1],
           v = data.profile.v.scaled[:, 1],
@@ -198,12 +215,12 @@ function train_NDE_multipleics(ps, params, ps_baseclosure, sts, NNs, truths, xâ‚
     loss_prefactors_validation = compute_loss_prefactor_density_contribution.(Ref(mode), ind_losses_validation, 
                                                                               compute_density_contribution.(validation_data.data))
 
-    jldopen(joinpath(WEIGHTS_DIR, "model_weights_round$(epoch)_end$(timeframes[end]).jld2"), "w") do file
-        file["0"] = ps
-        file["scaling"] = scaling_params
-        file["model"] = NNs
-        file["sts"] = sts
-    end
+    save_nn_weights(joinpath(WEIGHTS_DIR, "model_weights_round$(epoch)_end$(timeframes[end]).jld2");
+        ps             = ps,
+        scaling_params = scaling_params,
+        model_config   = nn_model_config,
+        sts_data       = sts,
+    )
 
     jldopen(joinpath(FILE_DIR, "model_loss_training_round$(epoch)_end$(timeframes[end]).jld2"), "w")
     jldopen(joinpath(FILE_DIR, "model_loss_validation_round$(epoch)_end$(timeframes[end]).jld2"), "w")
@@ -310,10 +327,11 @@ for (i, (epoch, optimizer, maxiter, training_timeframe)) in enumerate(zip(end_ep
         sim_index=sim_indices, epoch=i, maxiter=maxiter, rule=optimizer)
 
     # Save training results (best parameters, optimizer state, losses)
+    # Use version-agnostic format for model weights; optimizer state is ephemeral
     jldsave(joinpath(FILE_DIR, "training_results_epoch$(epoch)_end$(training_timeframe[end]).jld2");
             u_train = ps, state_train = opt_state, iter_min = iter_min,
             u_validation = ps_validation, state_validation = opt_state_validation, iter_min_validation = iter_min_validation,
-            losses = losses, scaling=scaling_params, model=NNs, sts=sts)
+            losses = losses, scaling=scaling_params, model_config=nn_model_config, sts=sts)
 
     plot_timeframe = training_timeframe[1]:training_timeframe[end]
     complete_timeframe = 25:length(validation_field_datasets[1]["ubar"].times)

@@ -19,6 +19,13 @@ Usage:
 
 """
 
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Oceananigans
 using Oceananigans.Units
 using JLD2
