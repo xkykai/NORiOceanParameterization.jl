@@ -1,12 +1,16 @@
-using Oceananigans
+using Pkg
+Pkg.activate(joinpath(@__DIR__, "..", "NORiImplementation"))
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Oceananigans
 using Oceananigans.Units
 using Oceananigans.TimeSteppers: update_state!
 using Printf
 using SeawaterPolynomials
 using SeawaterPolynomials: TEOS10
-using NORiOceanParameterization
-using NORiOceanParameterization.Implementation
+using NORiImplementation
 using Statistics
 using Oceananigans.TurbulenceClosures.TKEBasedVerticalDiffusivities: TKEDissipationVerticalDiffusivity
 using Oceananigans.TurbulenceClosures.TKEBasedVerticalDiffusivities: CATKEVerticalDiffusivity, CATKEMixingLength, CATKEEquation
@@ -69,10 +73,10 @@ function setup_model(closure)
         tracers = (:T, :S)
     end
 
-    model = HydrostaticFreeSurfaceModel(grid = grid,
+    model = HydrostaticFreeSurfaceModel(grid;
                                         free_surface = ImplicitFreeSurface(),
-                                        momentum_advection = WENO(grid = grid),
-                                        tracer_advection = WENO(grid = grid),
+                                        momentum_advection = WENO(),
+                                        tracer_advection = WENO(),
                                         buoyancy = SeawaterBuoyancy(equation_of_state=TEOS10.TEOS10EquationOfState()),
                                         coriolis = coriolis,
                                         closure = closure,

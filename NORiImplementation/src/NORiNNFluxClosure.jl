@@ -24,8 +24,7 @@ nn_closure = NORiNNFluxClosure(GPU())  # or CPU()
 # Use in Oceananigans model with base closure
 using Oceananigans
 base_closure = NORiBaseVerticalDiffusivity()
-model = HydrostaticFreeSurfaceModel(
-    grid = grid,
+model = HydrostaticFreeSurfaceModel(grid;
     closure = (base_closure, nn_closure),
     ...
 )

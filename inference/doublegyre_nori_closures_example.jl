@@ -70,7 +70,7 @@ grid = RectilinearGrid(model_architecture, Float64,
                        y = (-Ly/2, Ly/2),
                        z = (-Lz, 0))
 
-advection_scheme = WENO(grid, order = 5)
+advection_scheme = WENO(order = 5)
 
 @info "Built a grid: $grid."
 
@@ -142,9 +142,8 @@ coriolis = BetaPlane(rotation_rate=7.292115e-5, latitude=45, radius=6371e3)
 # the code will throw a CUDA: illegal memory access error for models larger than a small size.
 # This is a workaround to initialize the model with a closure other than NORi first,
 # then the code will run without any issues.
-model = HydrostaticFreeSurfaceModel(
-    grid = grid,
-    free_surface = SplitExplicitFreeSurface(grid, cfl=0.75),
+model = HydrostaticFreeSurfaceModel(grid;
+    free_surface = SplitExplicitFreeSurface(cfl=0.75),
     momentum_advection = advection_scheme,
     tracer_advection = advection_scheme,
     buoyancy = SeawaterBuoyancy(equation_of_state=TEOS10.TEOS10EquationOfState()),
@@ -156,9 +155,8 @@ model = HydrostaticFreeSurfaceModel(
 
 @info "Building a model with NORi closures..."
 
-model = HydrostaticFreeSurfaceModel(;
-    grid = grid,
-    free_surface = SplitExplicitFreeSurface(grid, cfl=0.75),
+model = HydrostaticFreeSurfaceModel(grid;
+    free_surface = SplitExplicitFreeSurface(cfl=0.75),
     momentum_advection = advection_scheme,
     tracer_advection = advection_scheme,
     buoyancy = SeawaterBuoyancy(equation_of_state=TEOS10.TEOS10EquationOfState()),

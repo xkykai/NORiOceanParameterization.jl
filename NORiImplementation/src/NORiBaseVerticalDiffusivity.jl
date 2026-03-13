@@ -42,8 +42,7 @@ base_closure = NORiBaseVerticalDiffusivity(
 
 # Use in Oceananigans model
 using Oceananigans
-model = HydrostaticFreeSurfaceModel(
-    grid = grid,
+model = HydrostaticFreeSurfaceModel(grid;
     closure = base_closure,
     ...
 )
