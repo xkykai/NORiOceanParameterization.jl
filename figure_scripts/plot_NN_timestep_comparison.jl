@@ -18,7 +18,7 @@ using NORiOceanParameterization.DataWrangling
 #####
 
 Δts = [1minute, 60minutes, 120minutes]
-Δt_labels = ["1 minute", "1 hour", "2 hours"]
+Δt_labels = [L"\Delta t = \text{1 minute}", L"\Delta t = \text{1 hour}", L"\Delta t = \text{2 hours}"]
 
 #####
 ##### Load LES reference data
@@ -65,7 +65,7 @@ colors = Makie.wong_colors();
 line_colors = [:blue, :red, :purple]
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(1100, 500), fontsize=30)
+    fig = Figure(size=(1100, 530), fontsize=30)
     
     axu = CairoMakie.Axis(fig[1, 1], xlabel="u (m s⁻¹)", ylabel="z (m)")
     axT = CairoMakie.Axis(fig[1, 2], xlabel="T (°C)", ylabel="z (m)", xticks=LinearTicks(3))
@@ -117,7 +117,7 @@ with_theme(theme_latexfonts()) do
     ##### Figure decorations
     #####
     
-    Legend(fig[2, :], axu, position=:lb, orientation=:horizontal, patchsize=(40, 20))
+    Legend(fig[2, :], axu, position=:lb, orientation=:horizontal, patchsize=(40, 20), nbanks=2)
 
     xlims!(axu, ulim)
     linkyaxes!(axu, axT, axS)
