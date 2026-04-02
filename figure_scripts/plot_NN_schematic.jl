@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using CairoMakie
 using JLD2
 using ComponentArrays
@@ -72,7 +79,7 @@ Rilim = padded_lims(Ri, width_multiplier)
 #####
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(800, 1500), fontsize=15)
+    fig = Figure(size=(900, 1500), fontsize=25)
     
     # Left column: state variables
     axT = CairoMakie.Axis(fig[1, 1], xlabel=L"($\degree$C)", ylabel="z (m)", title="Temperature")
@@ -146,9 +153,9 @@ wT_lim = padded_lims(wT_total, width_multiplier)
 wS_lim = padded_lims(wS_total, width_multiplier)
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(400, 750), fontsize=15)
+    fig = Figure(size=(700, 800), fontsize=20)
     axwT = CairoMakie.Axis(fig[1, 1], xlabel=L"($\degree$C m s$^{-1}$)", ylabel="z (m)", title="Temperature flux")
-    axwS = CairoMakie.Axis(fig[2, 1], xlabel=L"(psu m s$^{-1}$)", ylabel="z (m)", title="Salinity flux", xticks=LinearTicks(4))
+    axwS = CairoMakie.Axis(fig[2, 1], xlabel=L"(psu m s$^{-1}$)", ylabel="z (m)", title="Salinity flux", xticks=LinearTicks(3))
     
     # Highlight NN active region
     for (ax, lims) in [(axwT, wT_lim), (axwS, wS_lim)]
@@ -176,8 +183,8 @@ with_theme(theme_latexfonts()) do
     hidedecorations!(axwT, ticks=false, ticklabels=false, label=false)
     hidedecorations!(axwS, ticks=false, ticklabels=false, label=false)
 
-    axislegend(axwT, position=:rb, labelfont=:bold, patchsize=(40, 20))
-    axislegend(axwS, position=:lb, labelfont=:bold, patchsize=(40, 20))
+    Legend(fig[1, 2], axwT, position=:rb, labelfont=:bold, patchsize=(35, 20), labelsize=18)
+    Legend(fig[2, 2], axwS, position=:lb, labelfont=:bold, patchsize=(35, 20), labelsize=18)
     
     trim!(fig.layout)
     display(fig)

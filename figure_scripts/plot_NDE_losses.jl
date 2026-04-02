@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using JLD2
 using CairoMakie
 using Makie
@@ -84,7 +91,7 @@ losses_all_stages_validation = [hcat(losses...) for losses in losses_all_stages_
 ylims = (10^-3.2, 10^-2)
 
 with_theme(theme_latexfonts()) do 
-    fig = Figure(size=(1400, 1200), fontsize=25)
+    fig = Figure(size=(1400, 1200), fontsize=32)
     
     # Layout: top row (training/validation), bottom row (3 stages)
     g1 = fig[1, 1] = GridLayout()

@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using CairoMakie
 using JLD2
 using Makie
@@ -36,8 +43,8 @@ scaling = construct_zeromeanunitvariance_scaling(scaling_params)
 result_names = ["winds_07", "freeconvection_20", "windsandconvection_53", 
                 "windsandconvection_42", "windsandconvection_38", "windsandconvection_44"]
 result_titles = ["Pure wind\n(with rotation)", "Free convection\n(cooling)", 
-                 "Strong wind weak convection\n(strong rotation)", "Strong wind strong convection\n(strong rotation)", 
-                 "Weak wind strong convection\n(with rotation)", "Weak wind strong convection\n(no rotation)"]
+                 "Strong wind\nweak convection\n(strong rotation)", "Strong wind\nstrong convection\n(strong rotation)", 
+                 "Weak wind\nstrong convection\n(with rotation)", "Weak wind\nstrong convection\n(no rotation)"]
 
 # Load LES datasets (skip initial spinup period)
 initial_timeframe = 25
@@ -98,7 +105,7 @@ timeframe = 264
 # Line style configuration
 initial_linestyle = :dash
 initial_linewidth = 5
-plot_titlesize = 20
+plot_titlesize = 30
 NDE_linestyle = :solid
 LES_linewidth = 15
 LES_color = (colors[3], 0.5)
@@ -125,31 +132,31 @@ bs_nn = [b .- b_top for (b, b_top) in zip(bs_nn, bs_top)]
 #####
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size = (2000, 1600), fontsize=25)
+    fig = Figure(size = (2000, 1600), fontsize=35, figure_padding = (10, 40, 10, 10))
     
     # Create axes
-    axT1 = Axis(fig[1, 1], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[1], titlesize=plot_titlesize)
-    axT2 = Axis(fig[1, 2], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[2], titlesize=plot_titlesize)
+    axT1 = Axis(fig[1, 1], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[1], titlesize=plot_titlesize, xticks=LinearTicks(3))
+    axT2 = Axis(fig[1, 2], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[2], titlesize=plot_titlesize, xticks=LinearTicks(3))
     axT3 = Axis(fig[1, 3], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[3], titlesize=plot_titlesize)
     axT4 = Axis(fig[1, 4], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[4], titlesize=plot_titlesize)
-    axT5 = Axis(fig[1, 5], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[5], titlesize=plot_titlesize)
+    axT5 = Axis(fig[1, 5], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[5], titlesize=plot_titlesize, xticks=LinearTicks(3))
     axT6 = Axis(fig[1, 6], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[6], titlesize=plot_titlesize)
     Label(fig[2, :], L"Temperature ($\degree$C)")
 
-    axS1 = Axis(fig[3, 1], xlabel = "Salinity (psu)", ylabel = "z (m)")
+    axS1 = Axis(fig[3, 1], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(3))
     axS2 = Axis(fig[3, 2], xlabel = "Salinity (psu)", ylabel = "z (m)")
-    axS3 = Axis(fig[3, 3], xlabel = "Salinity (psu)", ylabel = "z (m)")
+    axS3 = Axis(fig[3, 3], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(3))
     axS4 = Axis(fig[3, 4], xlabel = "Salinity (psu)", ylabel = "z (m)")
     axS5 = Axis(fig[3, 5], xlabel = "Salinity (psu)", ylabel = "z (m)")
     axS6 = Axis(fig[3, 6], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(3))
     Label(fig[4, :], "Salinity (psu)")
 
-    axb1 = Axis(fig[5, 1], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(3))
-    axb2 = Axis(fig[5, 2], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(3))
-    axb3 = Axis(fig[5, 3], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(3))
-    axb4 = Axis(fig[5, 4], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(3))
-    axb5 = Axis(fig[5, 5], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(3))
-    axb6 = Axis(fig[5, 6], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=[-2e-3, 0])
+    axb1 = Axis(fig[5, 1], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(2))
+    axb2 = Axis(fig[5, 2], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(2))
+    axb3 = Axis(fig[5, 3], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(2))
+    axb4 = Axis(fig[5, 4], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(2))
+    axb5 = Axis(fig[5, 5], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=LinearTicks(2))
+    axb6 = Axis(fig[5, 6], xlabel = L"Buoyancy (m s$^{-2}$)", ylabel = "z (m)", xticks=[-1.5e-3, 0])
     Label(fig[6, :], L"Buoyancy (m s$^{-2}$)")
 
     axTs = [axT1, axT2, axT3, axT4, axT5, axT6]

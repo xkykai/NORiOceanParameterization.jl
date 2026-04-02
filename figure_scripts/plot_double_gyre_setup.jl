@@ -1,6 +1,11 @@
 # We activate a special environment for this script for compatibility reasons since the simulation was run with the specific versions
 using Pkg
 Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 include(joinpath(@__DIR__, "register_doublegyre_datadep.jl"))
 
 using CairoMakie
@@ -11,6 +16,7 @@ using Oceananigans.Units
 using ColorSchemes
 colors = Makie.wong_colors();
 using SeawaterPolynomials.TEOS10
+using NORiOceanParameterization.Utils: find_min, find_max
 
 const ρ₀ = TEOS10EquationOfState().reference_density
 const g_Earth = Oceananigans.BuoyancyModels.g_Earth
@@ -83,14 +89,6 @@ for i in axes(zFs_xz, 1)
   zFs_xz[i, :] .= zF
 end
 
-function find_min(a...)
-    return minimum(minimum.([a...]))
-end
-
-function find_max(a...)
-    return maximum(maximum.([a...]))
-end
-
 b_from_ρ(ρ) = -g_Earth * (ρ - ρ₀) / ρ₀
 
 frame_Ψ = 11  # Timestep index for barotropic streamfunction
@@ -119,13 +117,13 @@ plot_aspect = (2, 2, 1)  # Aspect ratio for 3D plot (x:y:z)
 zonal_plot_displacement = 500  # Offset for zonal mean contour plot (km)
 
 with_theme(theme_latexfonts()) do
-      fig = Figure(size=(2400, 1200), fontsize=30)
+      fig = Figure(size=(2400, 1200), fontsize=35)
       # Create grid layout: g1 = 3D buoyancy, g2 = surface forcings, g3 = 2D fields
       g1 = fig[1:2, 1:2] = GridLayout()
       g2 = fig[1, 3:4] = GridLayout()
       g3 = fig[2, 3:4] = GridLayout()
   
-      axb = Axis3(g1[1, 1], title="Buoyancy", xlabel="x (km)", ylabel="y (km)", zlabel="z (m)", viewmode=:fitzoom, aspect=plot_aspect, protrusions=(80, 30, 30, 30), perspectiveness=0.7, elevation=0.15π, xlabeloffset=90, ylabeloffset=90, zlabeloffset=90, azimuth = 1.2π)
+      axb = Axis3(g1[1, 1], title="Buoyancy", xlabel="x (km)", ylabel="y (km)", zlabel="z (m)", viewmode=:fitzoom, aspect=plot_aspect, protrusions=(80, 30, 30, 30), perspectiveness=0.7, elevation=0.15π, xlabeloffset=110, ylabeloffset=110, zlabeloffset=110, azimuth = 1.2π)
       # Dual x-axes for temperature (blue) and salinity (red) restoration
       axJᵀ = Axis(g2[1, 1], xlabel=L"Temperature restoration ($\degree$C)", ylabel="y (km)", xticklabelcolor = :blue, xlabelcolor = :blue, xtickcolor = :blue)
       axJˢ = Axis(g2[1, 1], xlabel="Salinity restoration (psu)", xticklabelcolor = :red, xaxisposition = :top, xlabelcolor = :red, xtickcolor = :red)
@@ -135,7 +133,7 @@ with_theme(theme_latexfonts()) do
       hidespines!(axJˢ)
       hideydecorations!(axJˢ)
   
-      axΨ = Axis(g3[1, 1], title="Barotropic streamfunction (Sv)", xlabel="x (km)", ylabel="y (km)")
+      axΨ = Axis(g3[1, 1], title="Barotropic streamfunction", xlabel="x (km)", ylabel="y (km)")
       axT = Axis(g3[1, 2], title="Temperature at $(z_depth)m depth", xlabel="x (km)", ylabel="y (km)")
   
       lines!(axJᵀ, T_surfaces, ys / 1000, color=:black, linewidth=4)

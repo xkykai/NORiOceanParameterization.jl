@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using CairoMakie
 using JLD2
 using ComponentArrays
@@ -16,8 +23,8 @@ ps_baseclosure = jldopen(joinpath(@__DIR__, "..", "calibrated_parameters", "base
 
 # Compute diffusivities as function of Richardson number
 Ris = -0.5:0.001:1
-νs = [local_Ri_ν(Ri, ps_baseclosure.ν_conv, ps_baseclosure.ν_shear, ps_baseclosure.Riᶜ, ps_baseclosure.ΔRi) for Ri in Ris]
-κs = [local_Ri_κ(Ri, ps_baseclosure.ν_conv, ps_baseclosure.ν_shear, ps_baseclosure.Riᶜ, ps_baseclosure.ΔRi, ps_baseclosure.Pr_conv, ps_baseclosure.Pr_shear) for Ri in Ris]
+νs = [local_Ri_ν(Ri, ps_baseclosure["ν_conv"], ps_baseclosure["ν_shear"], ps_baseclosure["Riᶜ"], ps_baseclosure["ΔRi"]) for Ri in Ris]
+κs = [local_Ri_κ(Ri, ps_baseclosure["ν_conv"], ps_baseclosure["ν_shear"], ps_baseclosure["Riᶜ"], ps_baseclosure["ΔRi"], ps_baseclosure["Pr_conv"], ps_baseclosure["Pr_shear"]) for Ri in Ris]
 
 #####
 ##### Load inference results and datasets
@@ -61,7 +68,7 @@ b_from_ρ(ρ) = -g_Earth * (ρ - ρ₀) / ρ₀
 #####
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(1200, 1800), fontsize=25)
+    fig = Figure(size=(1200, 1800), fontsize=30)
     gclosure = GridLayout(fig[1, 1])
     gresults = GridLayout(fig[2:7, 1])
     
@@ -74,9 +81,9 @@ with_theme(theme_latexfonts()) do
     axuv2 = CairoMakie.Axis(gresults[1, 2], xlabel=L"Velocities $(\text{m} \, \text{s}^{-1})$", ylabel="z (m)", 
                             titlesize=20, titlefont=:bold, title="Free convection (cooling)", xticks=LinearTicks(3))
     axuv3 = CairoMakie.Axis(gresults[1, 3], xlabel=L"Velocities $(\text{m} \, \text{s}^{-1})$", ylabel="z (m)", 
-                            titlesize=20, titlefont=:bold, title="Wind (rotation)", xticks=LinearTicks(3))
+                            titlesize=20, titlefont=:bold, title="Wind (rotation)", xticks=LinearTicks(2))
     axuv4 = CairoMakie.Axis(gresults[1, 4], xlabel=L"Velocities $(\text{m} \, \text{s}^{-1})$", ylabel="z (m)", 
-                            titlesize=20, titlefont=:bold, title="Wind,\nheating + precipitation")
+                            titlesize=20, titlefont=:bold, title="Wind,\nheating + precipitation", xticks=LinearTicks(3))
     
     Label(gresults[2, :], L"Velocities $(\text{m} \, \text{s}^{-1})$", tellwidth=false)
     
@@ -89,15 +96,15 @@ with_theme(theme_latexfonts()) do
     
     # Salinity panels
     axS1 = CairoMakie.Axis(gresults[6, 1], xlabel="Salinity (psu)", ylabel="z (m)", xticks=LinearTicks(3))
-    axS2 = CairoMakie.Axis(gresults[6, 2], xlabel="Salinity (psu)", ylabel="z (m)")
+    axS2 = CairoMakie.Axis(gresults[6, 2], xlabel="Salinity (psu)", ylabel="z (m)", xticks=LinearTicks(2))
     axS3 = CairoMakie.Axis(gresults[6, 3], xlabel="Salinity (psu)", ylabel="z (m)")
-    axS4 = CairoMakie.Axis(gresults[6, 4], xlabel="Salinity (psu)", ylabel="z (m)")
+    axS4 = CairoMakie.Axis(gresults[6, 4], xlabel="Salinity (psu)", ylabel="z (m)", xticks=LinearTicks(3))
     Label(gresults[7, :], "Salinity (psu)", tellwidth=false)
     
     # Buoyancy panels
     axσ1 = CairoMakie.Axis(gresults[8, 1], xlabel=L"Buoyancy (m s$^{-2}$)", ylabel="z (m)", xticks=LinearTicks(3))
     axσ2 = CairoMakie.Axis(gresults[8, 2], xlabel=L"Buoyancy (m s$^{-2}$)", ylabel="z (m)", xticks=LinearTicks(2))
-    axσ3 = CairoMakie.Axis(gresults[8, 3], xlabel=L"Buoyancy (m s$^{-2}$)", ylabel="z (m)", xticks=LinearTicks(3))
+    axσ3 = CairoMakie.Axis(gresults[8, 3], xlabel=L"Buoyancy (m s$^{-2}$)", ylabel="z (m)", xticks=LinearTicks(2))
     axσ4 = CairoMakie.Axis(gresults[8, 4], xlabel=L"Buoyancy (m s$^{-2}$)", ylabel="z (m)", xticks=LinearTicks(3))
     Label(gresults[9, :], L"Buoyancy (m s$^{-2}$)", tellwidth=false)
 
@@ -122,9 +129,9 @@ with_theme(theme_latexfonts()) do
     hidedecorations!(ax, ticks=false, ticklabels=false, label=false)
     
     # Mark convection/shear regimes
-    vlines!(ax, [0, ps_baseclosure.Riᶜ], color=:black, linestyle=:dash, linewidth=2)
+    vlines!(ax, [0, ps_baseclosure["Riᶜ"]], color=:black, linestyle=:dash, linewidth=2)
     text!(ax, -0.3, 5e-4, text="Convection-driven\nmixing", align=(:center, :center), font=:bold)
-    text!(ax, ps_baseclosure.Riᶜ / 2, 5e-4, text="Shear-driven\nmixing", align=(:center, :center), font=:bold)
+    text!(ax, ps_baseclosure["Riᶜ"] / 2, 5e-4, text="Shear-driven\nmixing", align=(:center, :center), font=:bold)
 
     #####
     ##### Plot results for selected cases
@@ -175,8 +182,8 @@ with_theme(theme_latexfonts()) do
     ##### Format axes
     #####
     
-    Legend(gresults[3, :], axuv1, orientation=:horizontal, patchsize=(50, 20), labelsize=22)
-    Legend(gresults[10, :], axT1, orientation=:horizontal, patchsize=(50, 20), labelsize=22)
+    Legend(gresults[3, :], axuv1, orientation=:horizontal, patchsize=(30, 20), labelsize=23)
+    Legend(gresults[10, :], axT1, orientation=:horizontal, patchsize=(50, 20), labelsize=23)
     
     # Hide redundant decorations
     for ax in [axuv1, axT1, axS1, axσ1]

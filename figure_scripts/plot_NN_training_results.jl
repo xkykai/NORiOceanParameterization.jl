@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using CairoMakie
 using JLD2
 using Makie
@@ -19,12 +26,12 @@ colors = Makie.wong_colors();
 
 # Training cases - used during neural network training
 result_names = ["windsandconvection_03", "freeconvection_15", "windsandconvection_15"]
-result_titles = ["Strong wind strong cooling", "Free convection", "Weak wind strong evaporation"]
+result_titles = ["Strong wind\nstrong cooling", "Free convection", "Weak wind\nstrong evaporation"]
 result_subtitles = ["Midlatitude Atlantic", "Southern Ocean", "Equatorial Pacific"]
 
 # Validation cases - held out during training
 result_names_validation = ["windsandconvection_38", "windsandconvection_51", "windsandconvection_40"]
-result_titles_validation = ["Weak wind strong convection", "Strong wind weak convection", "Moderate wind weak convection"]
+result_titles_validation = ["Weak wind\nstrong convection", "Strong wind\nweak convection", "Moderate wind\nweak convection"]
 result_subtitles_validation = ["Cooling + evaporation", "Cooling + evaporation", "Cooling + evaporation"]
 
 #####
@@ -64,8 +71,8 @@ initial_linewidth = 5
 NDE_linestyle = :solid
 LES_linewidth = 10
 LES_color = (colors[3], 0.5)
-plot_titlesize = 20
-plot_subtitlesize = 20
+plot_titlesize = 30
+plot_subtitlesize = 30
 
 # Helper functions
 b_from_ρ(ρ) = -g_Earth * (ρ - ρ₀) / ρ₀
@@ -109,7 +116,7 @@ bs_LES_validation = [bs_LES_validation[i] .- bs_top_validation[i] for i in 1:len
 #####
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size = (2000, 1600), fontsize=25)
+    fig = Figure(size = (2000, 1600), fontsize=35, figure_padding = (10, 40, 10, 10))
     
     # Create 3x6 grid of axes (T, S, b rows; 3 training + 3 validation columns)
     axT1 = Axis(fig[1, 1], xlabel = L"Temperature ($\degree$C)", ylabel = "z (m)", title = result_titles[1], titlesize=plot_titlesize, subtitle=result_subtitles[1], subtitlesize=plot_subtitlesize)
@@ -121,12 +128,12 @@ with_theme(theme_latexfonts()) do
 
     Label(fig[2, :], L"Temperature ($\degree$C)")
 
-    axS1 = Axis(fig[3, 1], xlabel = "Salinity (psu)", ylabel = "z (m)")
-    axS2 = Axis(fig[3, 2], xlabel = "Salinity (psu)", ylabel = "z (m)")
-    axS3 = Axis(fig[3, 3], xlabel = "Salinity (psu)", ylabel = "z (m)")
+    axS1 = Axis(fig[3, 1], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(3))
+    axS2 = Axis(fig[3, 2], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(2))
+    axS3 = Axis(fig[3, 3], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(2))
     axS4 = Axis(fig[3, 4], xlabel = "Salinity (psu)", ylabel = "z (m)")
-    axS5 = Axis(fig[3, 5], xlabel = "Salinity (psu)", ylabel = "z (m)")
-    axS6 = Axis(fig[3, 6], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(4))
+    axS5 = Axis(fig[3, 5], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(3))
+    axS6 = Axis(fig[3, 6], xlabel = "Salinity (psu)", ylabel = "z (m)", xticks=LinearTicks(2))
 
     Label(fig[4, :], "Salinity (psu)")
 
@@ -261,8 +268,8 @@ with_theme(theme_latexfonts()) do
         hideydecorations!(ax, ticks=false)
     end
 
-    Label(fig[0, 1:3], "Training", fontsize=30, font=:bold)
-    Label(fig[0, 4:6], "Validation", fontsize=30, font=:bold)
+    Label(fig[0, 1:3], "Training", font=:bold)
+    Label(fig[0, 4:6], "Validation", font=:bold)
 
     Legend(fig[7, :], axT1, orientation=:horizontal, patchsize=(50, 20))
 

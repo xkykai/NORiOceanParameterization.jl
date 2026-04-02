@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Oceananigans
 using CairoMakie
 using ColorSchemes
@@ -122,6 +129,7 @@ w_colormap = colorschemes[:balance];
 rasterize_level = 5  # Rasterization level for faster rendering
 protrusions = 10  # Space around 3D axes
 
+label_fontsize = 35
 #####
 ##### Create Figure
 #####
@@ -130,14 +138,14 @@ with_theme(theme_latexfonts()) do
     fig = Figure(size=(2200, 1300), fontsize=25)
     
     # Row labels
-    Label(fig[1, 0], "Free Convection", rotation=π/2, fontsize=25, font=:bold, tellheight=false, padding=(0, 20, 0, 0))
-    Label(fig[3, 0], "Wind Stress", rotation=π/2, fontsize=25, font=:bold, tellheight=false, padding=(0, 20, 0, 0))
+    Label(fig[1, 0], "Free Convection", rotation=π/2, fontsize=label_fontsize, font=:bold, tellheight=false, padding=(0, 20, 0, 0))
+    Label(fig[3, 0], "Wind Stress", rotation=π/2, fontsize=label_fontsize, font=:bold, tellheight=false, padding=(0, 20, 0, 0))
 
     # Column headers
-    Label(fig[0, 1], "Buoyancy, $(round(times[n], digits=3)) hours", font=:bold, tellwidth=false)
-    Label(fig[0, 2], "Vertical velocity, $(round(times[n], digits=3)) hours", font=:bold, tellwidth=false)
-    Label(fig[0, 3], "Horizontally-averaged temperature", font=:bold, tellwidth=false)
-    Label(fig[0, 4], "Horizontally-averaged salinity", font=:bold, tellwidth=false)
+    Label(fig[0, 1], "Buoyancy,\n $(round(times[n], digits=3)) hours", font=:bold, tellwidth=false, fontsize=label_fontsize)
+    Label(fig[0, 2], "Vertical velocity,\n $(round(times[n], digits=3)) hours", font=:bold, tellwidth=false, fontsize=label_fontsize)
+    Label(fig[0, 3], "Horizontally-averaged\n temperature", font=:bold, tellwidth=false, fontsize=label_fontsize)
+    Label(fig[0, 4], "Horizontally-averaged\n salinity", font=:bold, tellwidth=false, fontsize=label_fontsize)
 
     # 3D axes
     axb_convection = Axis3(fig[1, 1], xlabel="x (m)", ylabel="y (m)", zlabel="z (m)", 
@@ -158,10 +166,10 @@ with_theme(theme_latexfonts()) do
                      xlabelfont=:bold, ylabelfont=:bold, zlabelfont=:bold)
 
     # Profile axes
-    axTbar_convection = Axis(fig[1, 3], xlabel=L"$\text{T} \, (\degree \text{C})$", ylabel="z (m)")
-    axTbar_wind = Axis(fig[3, 3], xlabel=L"$\text{T} \, (\degree \text{C})$", ylabel="z (m)")
-    axSbar_convection = Axis(fig[1, 4], xlabel="S (psu)", ylabel="z (m)")
-    axSbar_wind = Axis(fig[3, 4], xlabel="S (psu)", ylabel="z (m)")
+    axTbar_convection = Axis(fig[1, 3], xlabel=L"$\text{T} \, (\degree \text{C})$", ylabel="z (m)", xlabelsize=label_fontsize, ylabelsize=label_fontsize)
+    axTbar_wind = Axis(fig[3, 3], xlabel=L"$\text{T} \, (\degree \text{C})$", ylabel="z (m)", xlabelsize=label_fontsize, ylabelsize=label_fontsize)
+    axSbar_convection = Axis(fig[1, 4], xlabel="S (psu)", ylabel="z (m)", xlabelsize=label_fontsize, ylabelsize=label_fontsize)
+    axSbar_wind = Axis(fig[3, 4], xlabel="S (psu)", ylabel="z (m)", xlabelsize=label_fontsize, ylabelsize=label_fontsize)
 
     #####
     ##### Plot 3D Surfaces
@@ -206,10 +214,10 @@ with_theme(theme_latexfonts()) do
                           highclip=w_colormap[end], lowclip=w_colormap[1])
 
     # Colorbars
-    Colorbar(fig[2, 1], b_convection_surf, label=L"$\text{m s}^{-2}$", vertical=false, flipaxis=false)
-    Colorbar(fig[2, 2], w_convection_surf, label=L"$\text{m s}^{-1}$", vertical=false, flipaxis=false)
-    Colorbar(fig[4, 1], b_wind_surf, label=L"$\text{m s}^{-2}$", vertical=false, flipaxis=false)
-    Colorbar(fig[4, 2], w_wind_surf, label=L"$\text{m s}^{-1}$", vertical=false, flipaxis=false)
+    Colorbar(fig[2, 1], b_convection_surf, label=L"$\text{m s}^{-2}$", vertical=false, flipaxis=false, labelsize=label_fontsize)
+    Colorbar(fig[2, 2], w_convection_surf, label=L"$\text{m s}^{-1}$", vertical=false, flipaxis=false, labelsize=label_fontsize)
+    Colorbar(fig[4, 1], b_wind_surf, label=L"$\text{m s}^{-2}$", vertical=false, flipaxis=false, labelsize=label_fontsize)
+    Colorbar(fig[4, 2], w_wind_surf, label=L"$\text{m s}^{-1}$", vertical=false, flipaxis=false, labelsize=label_fontsize)
 
     #####
     ##### Plot Vertical Profiles
@@ -270,7 +278,7 @@ with_theme(theme_latexfonts()) do
     hideydecorations!(axTbar_wind, ticks=false, ticklabels=false, label=false)
     hideydecorations!(axSbar_wind, ticks=false, ticklabels=false, label=false)
 
-    axislegend(axTbar_convection, position=:rb, font=:bold)
+    axislegend(axSbar_wind, position=:rb, font=:bold, labelsize=label_fontsize)
 
     trim!(fig.layout)
     display(fig)

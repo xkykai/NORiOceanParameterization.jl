@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Oceananigans
 using Oceananigans.Units
 using CairoMakie
@@ -59,12 +66,12 @@ colors = Makie.wong_colors();
 n = 721  # Time index to plot
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(1300, 500), fontsize=20)
+    fig = Figure(size=(1300, 500), fontsize=30)
     
-    axu = CairoMakie.Axis(fig[1, 1], xlabel="u (m s⁻¹)", ylabel="z (m)", xticks=LinearTicks(4))
-    axv = CairoMakie.Axis(fig[1, 2], xlabel="v (m s⁻¹)", ylabel="z (m)", xticks=LinearTicks(4))
+    axu = CairoMakie.Axis(fig[1, 1], xlabel="u (m s⁻¹)", ylabel="z (m)", xticks=LinearTicks(3))
+    axv = CairoMakie.Axis(fig[1, 2], xlabel="v (m s⁻¹)", ylabel="z (m)", xticks=LinearTicks(3))
     axT = CairoMakie.Axis(fig[1, 3], xlabel="T (°C)", ylabel="z (m)", xticks=LinearTicks(4))
-    axS = CairoMakie.Axis(fig[1, 4], xlabel="S (psu)", ylabel="z (m)", xticks=LinearTicks(4))
+    axS = CairoMakie.Axis(fig[1, 4], xlabel="S (psu)", ylabel="z (m)", xticks=LinearTicks(3))
 
     # Extract profiles at time index n
     ubarₙs = [interior(ubar_data[n], 1, 1, z_ind) for ubar_data in ubar_datas]
@@ -132,5 +139,5 @@ with_theme(theme_latexfonts()) do
     Legend(fig[2, :], axu, position=:lb, orientation=:horizontal, patchsize=(40, 20))
 
     display(fig)
-    # save("./figures/longintegration_comparison.pdf", fig)
+#     save("./figures/longintegration_comparison.pdf", fig)
 end

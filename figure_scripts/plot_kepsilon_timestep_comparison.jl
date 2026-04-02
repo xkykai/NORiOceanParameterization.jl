@@ -1,3 +1,10 @@
+using Pkg
+Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 using Statistics
 using Oceananigans
 using CairoMakie
@@ -57,10 +64,10 @@ colors = Makie.wong_colors();
 line_colors = [:blue, :gray, :red, :purple]
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(1100, 500), fontsize=20)
+    fig = Figure(size=(1100, 500), fontsize=30)
     
     axu = CairoMakie.Axis(fig[1, 1], xlabel="u (m s⁻¹)", ylabel="z (m)")
-    axT = CairoMakie.Axis(fig[1, 2], xlabel="T (°C)", ylabel="z (m)")
+    axT = CairoMakie.Axis(fig[1, 2], xlabel="T (°C)", ylabel="z (m)", xticks=LinearTicks(4))
     axS = CairoMakie.Axis(fig[1, 3], xlabel="S (psu)", ylabel="z (m)")
 
     #####

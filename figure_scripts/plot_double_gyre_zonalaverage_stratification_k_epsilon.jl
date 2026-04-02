@@ -1,6 +1,11 @@
 # We activate a special environment for this script for compatibility reasons since the simulation was run with the specific versions
 using Pkg
 Pkg.activate(@__DIR__)
+# Ensure parent package is available
+if !haskey(Pkg.project().dependencies, "NORiOceanParameterization")
+    Pkg.develop(path=joinpath(@__DIR__, ".."))
+end
+
 include(joinpath(@__DIR__, "register_doublegyre_datadep.jl"))
 
 using CairoMakie
@@ -11,6 +16,7 @@ using Oceananigans.Units
 using ColorSchemes
 using Oceananigans.BuoyancyModels: g_Earth
 using SeawaterPolynomials.TEOS10
+using NORiOceanParameterization.Utils: find_min, find_max
 
 #####
 ##### Physical constants
@@ -49,13 +55,6 @@ zF = grid.zᵃᵃᶠ[1:Nz+1]
 times = times / 24 / 60^2 / 360  # Convert to years
 
 #####
-##### Helper functions for colorbar limits
-#####
-
-find_min(a...) = minimum(minimum.([a...]))
-find_max(a...) = maximum(maximum.([a...]))
-
-#####
 ##### Compute plot limits
 #####
 
@@ -84,7 +83,7 @@ field_contourlevels = range(fieldlim[1], fieldlim[2], length=15)
 aspect_ratio = 1.8
 
 with_theme(theme_latexfonts()) do
-    fig = Figure(size=(1800, 700), fontsize=25)
+    fig = Figure(size=(1800, 800), fontsize=30)
     
     # NORi closure takes up 2x2 grid space (larger)
     axNN = Axis(fig[1:2, 1:2], xlabel="y (km)", ylabel="z (m)", 
