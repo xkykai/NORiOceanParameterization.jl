@@ -68,8 +68,7 @@ using Oceananigans.TurbulenceClosures:
     VerticallyImplicitTimeDiscretization,
     getclosure
 
-# Import (not using) functions we will extend
-import Oceananigans.TurbulenceClosures: viscosity, diffusivity, compute_diffusivities!, build_closure_fields
+import Oceananigans.TurbulenceClosures: viscosity, diffusivity, compute_closure_fields!, build_closure_fields
 using Oceananigans.Utils: KernelParameters, launch!, prettysummary
 
 using Adapt
@@ -257,7 +256,7 @@ Compute Richardson number-based diffusivities.
 2. Fill halo regions for Richardson number field
 3. Compute diffusivities based on Richardson number and regime
 """
-function compute_diffusivities!(diffusivities, closure::FlavorOfNBVD, model; parameters = :xyz)
+function compute_closure_fields!(diffusivities, closure::FlavorOfNBVD, model; parameters = :xyz)
     arch = model.architecture
     grid = model.grid
     clock = model.clock

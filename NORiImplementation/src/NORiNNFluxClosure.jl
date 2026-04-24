@@ -36,7 +36,7 @@ to use different trained models.
 """
 
 import Oceananigans.TurbulenceClosures:
-        compute_diffusivities!,
+        compute_closure_fields!,
         build_closure_fields,
         fill_halo_regions!,
         viscosity,
@@ -142,7 +142,7 @@ Construct a neural network flux closure for the given architecture.
 - `NORiNNFluxClosure` instance ready for use in Oceananigans
 """
 function NORiNNFluxClosure(arch; model_path=nothing)
-    dev = ifelse(arch == GPU(), gpu_device(), cpu_device())
+    dev = ifelse(arch == CPU(), cpu_device(), gpu_device())
 
     # Default model path - update this to use different trained models
     if isnothing(model_path)
@@ -204,7 +204,7 @@ Compute neural network flux corrections.
 3. Evaluate neural networks to get flux predictions
 4. Apply scaling and boundary conditions
 """
-function compute_diffusivities!(diffusivities, closure::NORiNNFluxClosure, model; parameters = :xyz)
+function compute_closure_fields!(diffusivities, closure::NORiNNFluxClosure, model; parameters = :xyz)
     arch = model.architecture
     grid = model.grid
     velocities = model.velocities
