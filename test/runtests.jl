@@ -27,10 +27,15 @@ if RUN_ALL_TESTS || "columnmodel" in TEST_FILTER
         common_env = [
             "JULIA_NUM_THREADS" => get(ENV, "JULIA_NUM_THREADS", "1"),
         ]
-
-        @test run_test_in_project(column_script, inference_project; env=common_env)
-    end
-end
+        function run_test_in_project(script, project; env=Pair{String, String}[])
+            # Instantiate the project first
+            instantiate_cmd = `$(Base.julia_cmd()) --project=$project -e 'using Pkg; Pkg.instantiate()'`
+            !success(instantiate_cmd) && error("Failed to instantiate project: $project")
+    
+            # Then run the script (which may handle its own package development)
+            command = `$(Base.julia_cmd()) --project=$project $script`
+            return success(setenv(command, env...))
+        end
 
 if RUN_ALL_TESTS || "doublegyre" in TEST_FILTER
     @testset "Inference: double gyre" begin
