@@ -242,6 +242,7 @@ catch err
     @error "Simulation failed with error:"
     showerror(stdout, err)
     Base.show_backtrace(stdout, catch_backtrace())
+    rethrow()
 end
 
 #####

@@ -23,6 +23,7 @@ using SeawaterPolynomials
 using SeawaterPolynomials: TEOS10
 using Printf
 using Statistics
+using TOML
 import Dates
 
 # Import NORi closures
@@ -32,7 +33,32 @@ using NORiImplementation
 ##### Simulation setup
 #####
 
-model_architecture = GPU()
+# Running this script without NORI_DOUBLEGYRE_TEST uses these production defaults.
+# NORI_DOUBLEGYRE_TEST only exists during testing
+# CI can set NORI_DOUBLEGYRE_TEST to a small TOML file that overrides only these values.
+config = Dict{String, Any}(
+    "arch" => "GPU",
+    "Nx" => 100,
+    "Ny" => 100,
+    "Nz" => 200,
+    "dt_seconds" => 5minutes,
+    "stop_time_seconds" => 100 * 365days,
+)
+
+if haskey(ENV, "NORI_DOUBLEGYRE_TEST")
+    config_path = ENV["NORI_DOUBLEGYRE_TEST"]
+    @info "Loading example configuration from $config_path"
+    merge!(config, TOML.parsefile(config_path))
+end
+
+architecture_name = uppercase(String(config["arch"]))
+model_architecture = if architecture_name == "CPU"
+    CPU()
+elseif architecture_name == "GPU"
+    GPU()
+else
+    error("Unsupported architecture '$architecture_name'. Set arch to CPU or GPU.")
+end
 
 #####
 ##### Closure setup - METHOD 1: Using helper function (RECOMMENDED)
@@ -53,9 +79,9 @@ closure = NORiClosureWithNN(arch=model_architecture)
 ##### Grid setup
 #####
 # Grid parameters
-const Nx = 100
-const Ny = 100
-const Nz = 200
+const Nx = Int(config["Nx"])
+const Ny = Int(config["Ny"])
+const Nz = Int(config["Nz"])
 
 const Δz = 8meters
 const Lx = 4000kilometers
@@ -143,7 +169,7 @@ coriolis = BetaPlane(rotation_rate=7.292115e-5, latitude=45, radius=6371e3)
 # This is a workaround to initialize the model with a closure other than NORi first,
 # then the code will run without any issues.
 model = HydrostaticFreeSurfaceModel(grid;
-    free_surface = SplitExplicitFreeSurface(cfl=0.75),
+    free_surface = SplitExplicitFreeSurface(grid; cfl=0.75),
     momentum_advection = advection_scheme,
     tracer_advection = advection_scheme,
     buoyancy = SeawaterBuoyancy(equation_of_state=TEOS10.TEOS10EquationOfState()),
@@ -156,7 +182,7 @@ model = HydrostaticFreeSurfaceModel(grid;
 @info "Building a model with NORi closures..."
 
 model = HydrostaticFreeSurfaceModel(grid;
-    free_surface = SplitExplicitFreeSurface(cfl=0.75),
+    free_surface = SplitExplicitFreeSurface(grid; cfl=0.75),
     momentum_advection = advection_scheme,
     tracer_advection = advection_scheme,
     buoyancy = SeawaterBuoyancy(equation_of_state=TEOS10.TEOS10EquationOfState()),
@@ -186,8 +212,8 @@ update_state!(model)
 ##### Simulation building
 #####
 
-Δt₀ = 5minutes
-stop_time = 100 * 365days
+Δt₀ = Float64(config["dt_seconds"])
+stop_time = Float64(config["stop_time_seconds"])
 
 simulation = Simulation(model, Δt = Δt₀, stop_time = stop_time)
 
