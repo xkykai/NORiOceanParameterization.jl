@@ -54,6 +54,9 @@ jobs:
       - name: Cache Julia artifacts
         uses: julia-actions/cache@v2
 
+      - name: Instantiate NORiImplementation
+        run: julia --project=NORiImplementation -e 'using Pkg; Pkg.develop([Pkg.PackageSpec(path="."), Pkg.PackageSpec(path="OceanStationPapa")]); Pkg.instantiate()'
+
       - name: Run column model tests
         run: julia --project=. test/runtests.jl
         env:
@@ -77,6 +80,9 @@ jobs:
 
       - name: Cache Julia artifacts
         uses: julia-actions/cache@v2
+
+      - name: Instantiate NORiImplementation
+        run: julia --project=NORiImplementation -e 'using Pkg; Pkg.develop([Pkg.PackageSpec(path="."), Pkg.PackageSpec(path="OceanStationPapa")]); Pkg.instantiate()'
 
       - name: Run double gyre tests
         run: julia --project=. test/runtests.jl
