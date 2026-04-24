@@ -1,0 +1,28 @@
+name = "OceanStationPapa"
+uuid = "0bd734aa-7356-4fb4-9812-0632263e777d"
+version = "0.1.0"
+
+[deps]
+ClimaSeaIce = "6ba0ff68-24e6-4315-936c-2e99227c95a4"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
+NumericalEarth = "904d977b-046a-4731-8b86-9235c0d1ef02"
+Oceananigans = "9e8cae18-63c1-5223-a75c-80ca9d6e9a09"
+Scratch = "6c6a2e73-6563-6170-7368-637461726353"
+Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
+
+[compat]
+ClimaSeaIce = "=0.4.7"
+NCDatasets = "0.14"
+NumericalEarth = "0.2.3"
+Oceananigans = "0.106"
+Scratch = "1.3"
+Thermodynamics = "0.15"
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
