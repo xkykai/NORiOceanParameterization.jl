@@ -54,8 +54,8 @@ jobs:
       - name: Cache Julia artifacts
         uses: julia-actions/cache@v2
 
-      - name: Develop main package and instantiate NORiImplementation
-        run: julia --project=NORiImplementation -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+      - name: Develop local packages and instantiate NORiImplementation
+        run: julia --project=NORiImplementation -e 'using Pkg; Pkg.develop(path="."); Pkg.develop(path="OceanStationPapa"); Pkg.instantiate()'
 
       - name: Run column model tests
         run: julia --project=. test/runtests.jl
@@ -81,8 +81,8 @@ jobs:
       - name: Cache Julia artifacts
         uses: julia-actions/cache@v2
 
-      - name: Develop main package and instantiate NORiImplementation
-        run: julia --project=NORiImplementation -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+      - name: Develop local packages and instantiate NORiImplementation
+        run: julia --project=NORiImplementation -e 'using Pkg; Pkg.develop(path="."); Pkg.develop(path="OceanStationPapa"); Pkg.instantiate()'
 
       - name: Run double gyre tests
         run: julia --project=. test/runtests.jl
