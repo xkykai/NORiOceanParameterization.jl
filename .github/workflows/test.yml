@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  ocean-station-papa-cpu:
+    name: OceanStationPapa CPU tests
+    runs-on: ubuntu-latest
+
+    env:
+      JULIA_NUM_THREADS: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.10"
+
+      - name: Cache Julia artifacts
+        uses: julia-actions/cache@v2
+
+      - name: Instantiate OceanStationPapa
+        run: julia --project=OceanStationPapa -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Run tests
+        run: julia --project=. test/runtests.jl
