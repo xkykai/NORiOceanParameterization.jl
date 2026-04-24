@@ -1,0 +1,6 @@
+arch = "CPU"
+Nx = 16
+Ny = 16
+Nz = 32
+dt_seconds = 300
+stop_time_seconds = 300
