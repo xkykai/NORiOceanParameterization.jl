@@ -17,7 +17,7 @@ using NORiOceanParameterization.DataWrangling
 ##### Timestep comparison settings
 #####
 
-Δts = [1minute, 60minutes, 120minutes]
+Δts = [1minutes, 60minutes, 120minutes]
 Δt_labels = [L"\Delta t = \text{1 minute}", L"\Delta t = \text{1 hour}", L"\Delta t = \text{2 hours}"]
 
 #####
