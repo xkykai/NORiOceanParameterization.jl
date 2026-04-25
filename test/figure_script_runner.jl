@@ -23,5 +23,6 @@ function run_figure_script(script::AbstractString; env=Pair{String, String}[])
     end
 
     command = `$(Base.julia_cmd()) $script`
-    return success(setenv(command, child_env))
+    @info "Running figure script" script command
+    return success(pipeline(setenv(command, child_env); stdout=stdout, stderr=stderr))
 end

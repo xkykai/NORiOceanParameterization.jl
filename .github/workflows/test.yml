@@ -117,6 +117,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-julia-datadeps-
 
+      - name: Instantiate figure scripts
+        run: julia --project=figure_scripts -e 'using Pkg; Pkg.develop(Pkg.PackageSpec(path=".")); Pkg.instantiate()'
+
+      - name: Instantiate OSPapa figure scripts
+        run: julia --project=figure_scripts/ospapa -e 'using Pkg; Pkg.develop([Pkg.PackageSpec(path="."), Pkg.PackageSpec(path="OceanStationPapa")]); Pkg.instantiate()'
+
       - name: Run figure script tests
         run: julia --project=. test/runtests.jl
         env:
