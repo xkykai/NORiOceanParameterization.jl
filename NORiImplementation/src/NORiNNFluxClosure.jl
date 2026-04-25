@@ -190,7 +190,8 @@ function build_closure_fields(grid, clock, tracer_names, bcs, closure::NORiNNFlu
     wrk_wT = on_architecture(arch, wrk_wT)
     wrk_wS = on_architecture(arch, wrk_wS)
 
-    return (; wrk_in, wrk_wT, wrk_wS, wT, wS, first_index, last_index)
+    previous_compute_time = Ref(clock.time)
+    return (; wrk_in, wrk_wT, wrk_wS, wT, wS, first_index, last_index, previous_compute_time)
 end
 
 """
@@ -214,6 +215,9 @@ function compute_closure_fields!(diffusivities, closure::NORiNNFluxClosure, mode
     clock      = model.clock
     top_tracer_bcs = NamedTuple(c => tracers[c].boundary_conditions.top for c in propertynames(tracers))
 
+    Δt = update_previous_compute_time!(diffusivities, model)
+    Δt == 0 && return nothing
+
     # Get Richardson number from base closure
     Riᶜ = model.closure[1].Riᶜ
     Ri = model.closure_fields[1].Ri
@@ -221,21 +225,16 @@ function compute_closure_fields!(diffusivities, closure::NORiNNFluxClosure, mode
     wrk_in = diffusivities.wrk_in
     wrk_wT = diffusivities.wrk_wT
     wrk_wS = diffusivities.wrk_wS
-    wT = diffusivities.wT
 
     first_index = diffusivities.first_index
     last_index = diffusivities.last_index
 
-    Nx_in, Ny_in, Nz_in = total_size(wT)
-    ox_in, oy_in, oz_in = wT.data.offsets
-    kp = KernelParameters((Nx_in, Ny_in, Nz_in), (ox_in, oy_in, oz_in))
-    kp_2D = KernelParameters((Nx_in, Ny_in), (ox_in, oy_in))
-
     N_levels = closure.grid_point_above + closure.grid_point_below
 
-    Nx_wrk, Ny_wrk, _ = size(wT)
-    # kp_wrk = KernelParameters((Nx_in, Ny_in, N_levels), (0, 0, 0))
-    kp_wrk = KernelParameters((Nx_wrk, Ny_wrk, N_levels), (0, 0, 0))
+    # Iterate over the interior only — halo cells of T/S may not be filled with
+    # physical values, and ∂z_b → TEOS10 throws DomainError on non-physical S.
+    kp_2D = KernelParameters((grid.Nx, grid.Ny), (0, 0))
+    kp_wrk = KernelParameters((grid.Nx, grid.Ny, N_levels), (0, 0, 0))
 
     # Step 1: Find active region based on Ri threshold
     launch!(arch, grid, kp_2D, _find_NN_active_region!, Ri, grid, Riᶜ, first_index, last_index, closure)
@@ -249,7 +248,7 @@ function compute_closure_fields!(diffusivities, closure::NORiNNFluxClosure, mode
     wrk_wS .= dropdims(closure.wS(wrk_in), dims=1)
 
     # Step 4: Apply scaling and fill output fields
-    launch!(arch, grid, kp, _fill_adjust_nn_fluxes!, diffusivities, first_index, last_index, wrk_wT, wrk_wS, grid, closure, tracers, velocities, buoyancy, top_tracer_bcs, clock)
+    launch!(arch, grid, parameters, _fill_adjust_nn_fluxes!, diffusivities, first_index, last_index, wrk_wT, wrk_wS, grid, closure, tracers, velocities, buoyancy, top_tracer_bcs, clock)
 
     return nothing
 end
@@ -555,7 +554,8 @@ function _componentarray_to_namedtuple(ca)
         if val isa ComponentArrays.ComponentArray
             push!(pairs, key => _componentarray_to_namedtuple(val))
         else
-            push!(pairs, key => Array(val))
+            push!(pairs, key => copy(val))
+            # push!(pairs, key => Array(val))
         end
     end
     return NamedTuple(pairs)
@@ -563,7 +563,7 @@ end
 
 # Custom fill_halo_regions! for NORiNNFluxClosure's closure fields.
 # Only fill halos for actual Field objects; skip plain work arrays.
-const NORiNNClosureFields = NamedTuple{(:wrk_in, :wrk_wT, :wrk_wS, :wT, :wS, :first_index, :last_index)}
+const NORiNNClosureFields = NamedTuple{(:wrk_in, :wrk_wT, :wrk_wS, :wT, :wS, :first_index, :last_index, :previous_compute_time)}
 
 function fill_halo_regions!(fields::NORiNNClosureFields, args...; kwargs...)
     fill_halo_regions!(fields.wT, args...; kwargs...)

@@ -69,7 +69,7 @@ using Oceananigans.TurbulenceClosures:
     getclosure
 
 import Oceananigans.TurbulenceClosures: viscosity, diffusivity, compute_closure_fields!, build_closure_fields
-using Oceananigans.Utils: KernelParameters, launch!, prettysummary
+using Oceananigans.Utils: KernelParameters, launch!, prettysummary, time_difference_seconds
 
 using Adapt
 using JLD2
@@ -239,7 +239,14 @@ function build_closure_fields(grid, clock, tracer_names, bcs, closure::FlavorOfN
     κᶜ = Field((Center(), Center(), Face()), grid)
     κᵘ = Field((Center(), Center(), Face()), grid)
     Ri = Field((Center(), Center(), Face()), grid)
-    return (; κᶜ, κᵘ, Ri)
+    previous_compute_time = Ref(clock.time)
+    return (; κᶜ, κᵘ, Ri, previous_compute_time)
+end
+
+function update_previous_compute_time!(closure_fields, model)
+    Δt = time_difference_seconds(model.clock.time, closure_fields.previous_compute_time[])
+    closure_fields.previous_compute_time[] = model.clock.time
+    return Δt
 end
 
 #####
@@ -265,20 +272,21 @@ function compute_closure_fields!(diffusivities, closure::FlavorOfNBVD, model; pa
     velocities = model.velocities
     top_tracer_bcs = NamedTuple(c => tracers[c].boundary_conditions.top for c in propertynames(tracers))
 
-    Nx_in, Ny_in, Nz_in = total_size(diffusivities.κᶜ)
-    ox_in, oy_in, oz_in = diffusivities.κᶜ.data.offsets
+    Δt = update_previous_compute_time!(diffusivities, model)
+    Δt == 0 && return nothing
 
-    kp = KernelParameters((Nx_in, Ny_in, Nz_in), (ox_in, oy_in, oz_in))
-
-    # Step 1: Compute Richardson number
-    launch!(arch, grid, kp, compute_ri_number!,
+    # Step 1: Compute Richardson number on the interior only — halo cells of T/S
+    # may not be filled with physical values (e.g. under flux BCs), and
+    # ∂z_b → TEOS10 throws DomainError on non-physical salinity. We fill Ri's
+    # halos via fill_halo_regions! afterwards.
+    launch!(arch, grid, parameters, compute_ri_number!,
             diffusivities, grid, closure, velocities, tracers, buoyancy, top_tracer_bcs, clock)
 
     # Step 2: Fill halos (use only_local_halos to avoid communication)
     fill_halo_regions!(diffusivities.Ri; only_local_halos=true)
 
     # Step 3: Compute diffusivities based on Richardson number
-    launch!(arch, grid, kp, compute_NORi_diffusivities!,
+    launch!(arch, grid, parameters, compute_NORi_diffusivities!,
             diffusivities, grid, closure, velocities, tracers, buoyancy, top_tracer_bcs, clock)
 
     return nothing
