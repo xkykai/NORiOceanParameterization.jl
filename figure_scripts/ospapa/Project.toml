@@ -1,0 +1,15 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
+DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+NORiOceanParameterization = "387c5e47-b07a-4683-ad32-7ad5f2efffec"
+NumericalEarth = "904d977b-046a-4731-8b86-9235c0d1ef02"
+OceanStationPapa = "0bd734aa-7356-4fb4-9812-0632263e777d"
+Oceananigans = "9e8cae18-63c1-5223-a75c-80ca9d6e9a09"
+RollingFunctions = "b0e4dd01-7b14-53d8-9b45-175a3e362653"
+
+[compat]
+NumericalEarth = "0.2.3"
+Oceananigans = "0.106"
