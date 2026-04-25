@@ -127,11 +127,11 @@ const μ_T = 1/8days
 
 surface_u_flux_bc = FluxBoundaryCondition(surface_u_flux)
 
-@inline u_drag(x, y, t, u) = @inbounds -μ_drag * Lz * u
-@inline v_drag(x, y, t, v) = @inbounds -μ_drag * Lz * v
+@inline u_drag(i, j, grid, clock, fields) = @inbounds -μ_drag * Lz * fields.u[i, j, 1]
+@inline v_drag(i, j, grid, clock, fields) = @inbounds -μ_drag * Lz * fields.v[i, j, 1]
 
-u_drag_bc = FluxBoundaryCondition(u_drag; field_dependencies=:u)
-v_drag_bc = FluxBoundaryCondition(v_drag; field_dependencies=:v)
+u_drag_bc = FluxBoundaryCondition(u_drag; discrete_form=true)
+v_drag_bc = FluxBoundaryCondition(v_drag; discrete_form=true)
 
 u_bcs = FieldBoundaryConditions(top = surface_u_flux_bc,
                                 bottom = u_drag_bc,
@@ -144,14 +144,20 @@ v_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0),
                                 west = ValueBoundaryCondition(0))
 
 @inline T_ref(y) = T_mid - ΔT / Ly * y
-@inline surface_T_flux(x, y, t, T) = μ_T * Δz * (T - T_ref(y))
-surface_T_flux_bc = FluxBoundaryCondition(surface_T_flux; field_dependencies=:T)
+@inline function surface_T_flux(i, j, grid, clock, fields)
+    y = ynode(i, j, grid.Nz, grid, Center(), Center(), Center())
+    @inbounds μ_T * Δz * (fields.T[i, j, grid.Nz] - T_ref(y))
+end
+surface_T_flux_bc = FluxBoundaryCondition(surface_T_flux; discrete_form=true)
 T_bcs = FieldBoundaryConditions(top = surface_T_flux_bc)
 
 @inline S_ref(y) = (S_north - S_south) / Ly * y + S_mid
 @inline S_initial(x, y, z) = S_ref(y)
-@inline surface_S_flux(x, y, t, S) = μ_T * Δz * (S - S_ref(y))
-surface_S_flux_bc = FluxBoundaryCondition(surface_S_flux; field_dependencies=:S)
+@inline function surface_S_flux(i, j, grid, clock, fields)
+    y = ynode(i, j, grid.Nz, grid, Center(), Center(), Center())
+    @inbounds μ_T * Δz * (fields.S[i, j, grid.Nz] - S_ref(y))
+end
+surface_S_flux_bc = FluxBoundaryCondition(surface_S_flux; discrete_form=true)
 S_bcs = FieldBoundaryConditions(top = surface_S_flux_bc)
 
 #####
