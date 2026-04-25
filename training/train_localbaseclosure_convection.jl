@@ -60,6 +60,7 @@ rng = Random.default_rng(123)
 # Load the optimal shear parameters from the shear training results
 PS_PRIOR_DIR = joinpath(@__DIR__, "..", "calibrated_parameters", "baseclosure_shear.jld2")
 ps = jldopen(PS_PRIOR_DIR, "r")["u"]
+ps = ComponentArray(ν_conv=ps["ν_conv"], ν_shear=ps["ν_shear"], Riᶜ=ps["Riᶜ"], Pr_conv=ps["Pr_conv"], Pr_shear=ps["Pr_shear"], ΔRi=ps["ΔRi"])
 
 ps_prior = ps
 ps_fixed = ComponentArray(ν_shear=ps.ν_shear, Riᶜ=ps.Riᶜ, Pr_shear=ps.Pr_shear)

@@ -40,7 +40,8 @@ end
     predict_diffusivities(Ris, ps)
 
 Compute momentum (`νs`) and tracer (`κs`) diffusivities from Richardson numbers
-using local Richardson number closures.
+using local Richardson number closures. `ps` can provide parameters as fields or
+as dictionary entries with string keys.
 
 Returns `νs, κs`.
 """
@@ -50,14 +51,27 @@ function predict_diffusivities(Ris, ps)
     return νs, κs
 end
 
+function predict_diffusivities(Ris, ps::AbstractDict)
+    νs = local_Ri_ν.(Ris, ps["ν_conv"], ps["ν_shear"], ps["Riᶜ"], ps["ΔRi"])
+    κs = local_Ri_κ.(Ris, ps["ν_conv"], ps["ν_shear"], ps["Riᶜ"], ps["ΔRi"], ps["Pr_conv"], ps["Pr_shear"])
+    return νs, κs
+end
+
 """
     predict_diffusivities!(νs, κs, Ris, ps)
 
 In-place version of `predict_diffusivities`. Modifies diffusivity arrays directly.
+`ps` can provide parameters as fields or as dictionary entries with string keys.
 """
 function predict_diffusivities!(νs, κs, Ris, ps)
     νs .= local_Ri_ν.(Ris, ps.ν_conv, ps.ν_shear, ps.Riᶜ, ps.ΔRi)
     κs .= local_Ri_κ.(Ris, ps.ν_conv, ps.ν_shear, ps.Riᶜ, ps.ΔRi, ps.Pr_conv, ps.Pr_shear)
+    return nothing
+end
+
+function predict_diffusivities!(νs, κs, Ris, ps::AbstractDict)
+    νs .= local_Ri_ν.(Ris, ps["ν_conv"], ps["ν_shear"], ps["Riᶜ"], ps["ΔRi"])
+    κs .= local_Ri_κ.(Ris, ps["ν_conv"], ps["ν_shear"], ps["Riᶜ"], ps["ΔRi"], ps["Pr_conv"], ps["Pr_shear"])
     return nothing
 end
 
