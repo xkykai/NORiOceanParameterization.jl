@@ -11,7 +11,12 @@ end
 function run_test_in_project(script, project; env=Pair{String, String}[])
     instantiate_project(project)
     command = `$(Base.julia_cmd()) --project=$project $script`
-    return success(setenv(command, env...))
+    child_env = copy(ENV)
+    for (key, value) in env
+        child_env[key] = value
+    end
+
+    return success(setenv(command, child_env))
 end
 
 # Get list of tests to run from environment variable (all by default)
