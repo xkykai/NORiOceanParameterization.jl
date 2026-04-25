@@ -88,3 +88,36 @@ jobs:
         run: julia --project=. test/runtests.jl
         env:
           TEST_FILTER: doublegyre
+
+  figure-scripts:
+    name: Figure script tests
+    runs-on: ubuntu-latest
+
+    env:
+      JULIA_NUM_THREADS: "1"
+      DATADEPS_ALWAYS_ACCEPT: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.10"
+
+      - name: Cache Julia artifacts
+        uses: julia-actions/cache@v2
+
+      - name: Cache Julia DataDeps
+        uses: actions/cache@v4
+        with:
+          path: ~/.julia/datadeps
+          key: ${{ runner.os }}-julia-datadeps-${{ hashFiles('figure_scripts/**/Project.toml', 'figure_scripts/**/Manifest.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-julia-datadeps-
+
+      - name: Run figure script tests
+        run: julia --project=. test/runtests.jl
+        env:
+          TEST_FILTER: figures

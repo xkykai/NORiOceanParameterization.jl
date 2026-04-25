@@ -2,6 +2,8 @@ using Test
 
 const REPO_ROOT = normpath(joinpath(@__DIR__, ".."))
 
+include(joinpath(@__DIR__, "figure_script_runner.jl"))
+
 function instantiate_project(project)
     instantiate_cmd = `$(Base.julia_cmd()) --project=$project -e 'using Pkg; Pkg.instantiate()'`
     success(instantiate_cmd) || error("Failed to instantiate project: $project")
@@ -58,5 +60,18 @@ if RUN_ALL_TESTS || "doublegyre" in TEST_FILTER
             common_env...,
             "NORI_DOUBLEGYRE_TEST" => doublegyre_config,
         ])
+    end
+end
+
+if RUN_ALL_TESTS || "figures" in TEST_FILTER
+    @testset "Figure scripts" begin
+        figure_scripts = discover_figure_scripts()
+        @test !isempty(figure_scripts)
+
+        for script in figure_scripts
+            @testset "$(relpath(script, REPO_ROOT))" begin
+                @test run_figure_script(script)
+            end
+        end
     end
 end
